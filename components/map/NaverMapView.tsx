@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
+import { saltBreadShopsMock } from "@/lib/data/saltBreadShops.mock";
 export default function NaverMapView() {
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -18,6 +18,14 @@ export default function NaverMapView() {
     };
 
     const map = new naver.maps.Map(mapRef.current, mapOptions);
+
+    saltBreadShopsMock.forEach((shop) => {
+      new naver.maps.Marker({
+        position: new naver.maps.LatLng(shop.lat, shop.lng),
+        map: map, // 이 마커가 어떤 지도 위에 올라갈지 지정
+        title: shop.name, // 마우스를 올렸을 때 뜨는 이름
+      });
+    });
   }, []);
 
   return <div ref={mapRef} style={{ width: "100%", height: "100%" }} />;
