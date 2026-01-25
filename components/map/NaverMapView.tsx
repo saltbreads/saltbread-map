@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { saltBreadShopsMock } from "@/lib/data/saltBreadShops.mock";
+
 export default function NaverMapView() {
   const mapRef = useRef<HTMLDivElement>(null);
 
