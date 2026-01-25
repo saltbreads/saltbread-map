@@ -1,5 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
+import { cn } from "@/lib/utils/cn";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg" | "icon";
@@ -10,7 +11,6 @@ type CommonProps = {
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  asChild?: boolean;
   className?: string;
   children: React.ReactNode;
 };
@@ -27,20 +27,16 @@ type ButtonAsLink = CommonProps &
 
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
-function cx(...classes: Array<string | undefined | false>) {
-  return classes.filter(Boolean).join(" ");
-}
-
 const base =
   "inline-flex items-center justify-center gap-2 rounded-xl font-medium " +
   "transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-black text-white hover:bg-black/90 shadow-sm",
+  primary: "bg-brand-primary text-white hover:bg-brand-secondary shadow-sm",
   secondary: "bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
   outline: "bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-50",
-  ghost: "bg-transparent text-zinc-900 hover:bg-zinc-100",
+  ghost: "bg-transparent hover:bg-brand-primary/10 text-brand-secondary",
   danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
 };
 
@@ -54,7 +50,7 @@ const sizes: Record<Size, string> = {
 function Spinner({ className }: { className?: string }) {
   return (
     <span
-      className={cx(
+      className={cn(
         "inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent",
         className
       )}
@@ -79,7 +75,7 @@ export const Button = React.forwardRef<
   },
   ref
 ) {
-  const classes = cx(base, variants[variant], sizes[size], className);
+  const classes = cn(base, variants[variant], sizes[size], className);
 
   // Link 버전
   if ("href" in props && typeof props.href === "string") {
