@@ -1,12 +1,15 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 
-type InfoRowVariant = "plain" | "badge";
+export type InfoRowVariant = "plain" | "badge";
 
-type InfoRowProps = {
-  icon?: React.ReactNode; // 🥐, 🧈 같은 이모지 or SVG 아이콘
-  label: string; // "소금빵", "버터향 강함"
-  value?: React.ReactNode; // "3,000원대", 30 등
+export type InfoRowItem = {
+  icon?: React.ReactNode;
+  label: string;
+  value?: React.ReactNode;
+};
+
+export type InfoRowProps = InfoRowItem & {
   variant?: InfoRowVariant;
   className?: string;
 };
