@@ -31,7 +31,7 @@ export default function NaverMapView2() {
           map,
           title: shop.name,
           icon: {
-            url: "/image/bread.png",
+            url: "/image/saltBreadPin.png",
             size: new naver.maps.Size(50, 50),
             anchor: new naver.maps.Point(25, 26),
           },
