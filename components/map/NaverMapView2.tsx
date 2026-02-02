@@ -14,7 +14,7 @@ export default function NaverMapView2() {
 
     const map = new naver.maps.Map(mapRef.current, {
       center: new naver.maps.LatLng(35.8779, 128.6285),
-      zoom: 14,
+      zoom: 16,
     });
 
     const clearMarkers = () => {
@@ -32,8 +32,7 @@ export default function NaverMapView2() {
           title: shop.name,
           icon: {
             url: "/image/bread.png",
-            size: new naver.maps.Size(50, 52),
-            origin: new naver.maps.Point(0, 0),
+            size: new naver.maps.Size(50, 50),
             anchor: new naver.maps.Point(25, 26),
           },
         });
@@ -56,5 +55,5 @@ export default function NaverMapView2() {
     };
   }, []);
 
-  return <div ref={mapRef} style={{ width: "100%", height: "100vh" }} />;
+  return <div ref={mapRef} className="w-full h-full" />;
 }
