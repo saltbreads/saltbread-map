@@ -6,6 +6,7 @@ import { InfoRow } from "@/components/ui/InfoRow";
 import { Tag } from "@/components/ui/Tag";
 import { LikeButton } from "@/components/ui/LikeButton";
 import { useState } from "react";
+import { Logo } from "@/components/brand/Logo";
 
 export default function Page() {
   const [liked, setLiked] = useState(false);
@@ -50,6 +51,90 @@ export default function Page() {
           <Tag>재방문</Tag>
         </div>
         <LikeButton isLiked={liked} onToggleAction={(next) => setLiked(next)} />
+      </div>
+      <div className="min-h-screen bg-zinc-50 p-6">
+        <div className="mx-auto w-full max-w-140">
+          <h1 className="text-lg font-semibold text-zinc-900">
+            Logo 조합 테스트
+          </h1>
+          <p className="mt-1 text-xs text-zinc-600">
+            size(sm/md/lg) × showText(true/false)
+          </p>
+
+          <div className="mt-6 space-y-6">
+            {/* showText = true */}
+            <section className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                showText: true
+              </h2>
+
+              <div className="mt-3 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">sm</span>
+                  <Logo size="sm" showText />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">md</span>
+                  <Logo size="md" showText />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">lg</span>
+                  <Logo size="lg" showText />
+                </div>
+              </div>
+            </section>
+
+            {/* showText = false */}
+            <section className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                showText: false
+              </h2>
+
+              <div className="mt-3 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">sm</span>
+                  <Logo size="sm" showText={false} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">md</span>
+                  <Logo size="md" showText={false} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">lg</span>
+                  <Logo size="lg" showText={false} />
+                </div>
+              </div>
+            </section>
+
+            {/* className 테스트 */}
+            <section className="rounded-xl border border-zinc-200 bg-white p-4">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                className override
+              </h2>
+
+              <div className="mt-3 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">텍스트 색 변경</span>
+                  <Logo size="md" className="text-brand-secondary" />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">투명도</span>
+                  <Logo size="md" className="opacity-70" />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-600">간격 강제</span>
+                  <Logo size="md" className="gap-4" />
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
     </div>
   );
