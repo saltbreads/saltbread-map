@@ -2,10 +2,17 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
+import { ShopPhotoGrid } from "../shop/ShopPhotoGrid";
 
 type SidePanelModalProps = {
   open: boolean;
+
+  /** 뒤로가기(리스트로) */
+  onBack?: () => void;
+
+  /** 패널 닫기 */
   onClose: () => void;
+
   shopId?: string;
   children?: React.ReactNode;
 
@@ -24,6 +31,7 @@ type SidePanelModalProps = {
 
 export function SidePanelModal({
   open,
+  onBack,
   onClose,
   shopId = "상세",
   children,
@@ -41,10 +49,10 @@ export function SidePanelModal({
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* overlay */}
+      {/* overlay (필요하면 클릭 닫기 가능) */}
       <div className="absolute inset-0 pointer-events-none" />
 
-      {/* panel (floating card) */}
+      {/* panel */}
       <div
         className={cn(
           "absolute bg-white shadow-2xl border",
@@ -59,21 +67,50 @@ export function SidePanelModal({
         }}
         role="dialog"
         aria-modal="true"
+        aria-label={`가게 상세 ${shopId}`}
       >
-        {/* header */}
-        <div className="h-14 px-4 flex items-center justify-between border-b bg-white">
-          <div className="text-sm font-bold text-zinc-900">{shopId}</div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-zinc-100"
-            aria-label="닫기"
-          >
-            ✕
-          </button>
+        {/*  Photo area (padding 없음: edge-to-edge) */}
+        <div className="relative">
+          <ShopPhotoGrid
+            images={[
+              "/image/sample-shop-1.jpg",
+              "/image/sample-shop-2.jpg",
+              "/image/sample-shop-3.jpg",
+              "/image/sample-shop-2.jpg",
+              "/image/sample-shop-3.jpg",
+            ]}
+            onOpen={(startIndex) => {
+              console.log("open gallery at", startIndex);
+            }}
+          />
+
+          {/* 사진 위 오버레이: 뒤로가기 / 닫기 */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between p-3">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+                aria-label="뒤로가기"
+              >
+                <span className="text-lg leading-none">←</span>
+              </button>
+            ) : (
+              <div />
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+              aria-label="닫기"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        {/* body */}
+        {/* body (여기서부터 padding) */}
         <div className="flex-1 min-h-0 overflow-y-auto p-4">{children}</div>
       </div>
     </div>
