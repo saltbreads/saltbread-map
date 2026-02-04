@@ -7,6 +7,7 @@ import { Tag } from "@/components/ui/Tag";
 import { LikeButton } from "@/components/ui/LikeButton";
 import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
+import { ShopPhotoGrid } from "@/components/shop/ShopPhotoGrid";
 
 export default function Page() {
   const [liked, setLiked] = useState(false);
@@ -109,6 +110,21 @@ export default function Page() {
                 </div>
               </div>
             </section>
+            <ShopPhotoGrid
+              images={[
+                "/image/sample1.jpg",
+                "/image/sample2.jpg",
+                "/image/sample3.jpg",
+                "/image/sample4.jpg",
+                "/image/sample5.jpg",
+                "/image/sample6.jpg",
+                "/image/sample7.jpg",
+              ]}
+              onOpen={(startIndex) => {
+                // TODO: 여기서 모달/라이트박스 열기
+                console.log("open gallery at", startIndex);
+              }}
+            />
 
             {/* className 테스트 */}
             <section className="rounded-xl border border-zinc-200 bg-white p-4">
