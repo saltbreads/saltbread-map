@@ -3,7 +3,9 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { ShopPhotoGrid } from "../shop/ShopPhotoGrid";
-
+import { ShopDetailTabs } from "../shop/ShopDetailTabs";
+import { ShopDetailTabKey } from "../shop/ShopDetailTabs";
+import { ShopHomeSection } from "../shop/ShopHomeSection";
 type SidePanelModalProps = {
   open: boolean;
 
@@ -41,6 +43,7 @@ export function SidePanelModal({
   insetYPx = 16,
   panelWidthPx = 420,
 }: SidePanelModalProps) {
+  const [tab, setTab] = React.useState<ShopDetailTabKey>("home");
   if (!open) return null;
 
   const left = sidebarWidthPx + gapPx;
@@ -109,7 +112,52 @@ export function SidePanelModal({
             </button>
           </div>
         </div>
+        <div>
+          <ShopDetailTabs value={tab} onChange={setTab} />
 
+          <div className="pt-4">
+            {tab === "home" && <div id="panel-home">홈 내용</div>}
+            {tab === "menu" && <div id="panel-menu">메뉴 내용</div>}
+            {tab === "review" && <div id="panel-review">리뷰 내용</div>}
+            {tab === "photo" && <div id="panel-photo">사진 내용</div>}
+          </div>
+        </div>
+        <div className="mx-auto max-w-[420px] p-4">
+          <ShopHomeSection
+            address={{
+              display: "대구 남구 계명길 12-4 1층",
+              road: "대구광역시 남구 계명길 12-4",
+              jibun: "대구 남구 대명동 123-4",
+              zip: "42401",
+            }}
+            transit={{
+              label: "남산역 2번 출구에서 976m",
+            }}
+            business={{
+              status: "OPEN",
+              statusText: "영업 중",
+              todayText: "오늘 12:00 ~ 02:00",
+              weekly: [
+                { dayLabel: "월", hoursText: "12:00 - 02:00" },
+                { dayLabel: "화", hoursText: "12:00 - 02:00" },
+                { dayLabel: "수", hoursText: "12:00 - 02:00" },
+                { dayLabel: "목", hoursText: "12:00 - 02:00" },
+                { dayLabel: "금", hoursText: "12:00 - 03:00" },
+                { dayLabel: "토", hoursText: "12:00 - 03:00" },
+                { dayLabel: "일", hoursText: "휴무", isClosed: true },
+              ],
+            }}
+            phone={{
+              label: "전화번호 보기",
+              number: "0507-1376-3975",
+            }}
+            links={{
+              instagram: "https://instagram.com/test",
+              kakao: "https://pf.kakao.com/_test",
+              website: "https://example.com",
+            }}
+          />
+        </div>
         {/* body (여기서부터 padding) */}
         <div className="flex-1 min-h-0 overflow-y-auto p-4">{children}</div>
       </div>
