@@ -1,9 +1,13 @@
-import NaverMapView from "@/components/features/map/NaverMapView";
+import NaverMapView2 from "@/components/features/map/NaverMapView2";
+import { Sidebar } from "../shared/layout/Sidebar";
 
 export default function MapPage() {
   return (
-    <main style={{ width: "100vw", height: "100vh" }}>
-      <NaverMapView />
+    <main className="h-dvh w-dvw flex">
+      <Sidebar />
+      <div className="flex-1 min-w-0">
+        <NaverMapView2 />
+      </div>
     </main>
   );
 }
