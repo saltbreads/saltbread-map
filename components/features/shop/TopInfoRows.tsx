@@ -3,7 +3,7 @@ import {
   InfoRow,
   type InfoRowItem,
   type InfoRowVariant,
-} from "@/components/ui/InfoRow";
+} from "@/components/shared/ui/InfoRow";
 
 type TopInfoRowsProps = {
   items: InfoRowItem[];

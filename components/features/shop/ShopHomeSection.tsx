@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
-import { CopyButton } from "@/components/ui/CopyButton";
+import { CopyButton } from "@/components/shared/ui/CopyButton";
 type AddressInfo = {
   /** 대표 표시(첫 줄) */
   display: string;

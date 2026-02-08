@@ -3,11 +3,11 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 
-import { RatingBadge } from "@/components/ui/RatingBadge";
-import { LikeButton } from "@/components/ui/LikeButton";
-import { InfoRow, type InfoRowItem } from "@/components/ui/InfoRow";
-import { TopInfoRows } from "@/components/shop/TopInfoRows";
-import { type InfoRowVariant } from "@/components/ui/InfoRow";
+import { RatingBadge } from "@/components/shared/ui/RatingBadge";
+import { LikeButton } from "@/components/shared/ui/LikeButton";
+import { InfoRow, type InfoRowItem } from "@/components/shared/ui/InfoRow";
+import { TopInfoRows } from "@/components/features/shop/TopInfoRows";
+import { type InfoRowVariant } from "@/components/shared/ui/InfoRow";
 
 type ShopListItemProps = {
   imageUrl?: string;

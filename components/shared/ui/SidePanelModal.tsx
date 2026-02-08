@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
-import { ShopPhotoGrid } from "../shop/ShopPhotoGrid";
-import { ShopDetailTabs } from "../shop/ShopDetailTabs";
-import { ShopDetailTabKey } from "../shop/ShopDetailTabs";
-import { ShopHomeSection } from "../shop/ShopHomeSection";
+import { ShopPhotoGrid } from "../../features/shop/ShopPhotoGrid";
+import { ShopDetailTabs } from "../../features/shop/ShopDetailTabs";
+import { ShopDetailTabKey } from "../../features/shop/ShopDetailTabs";
+import { ShopHomeSection } from "../../features/shop/ShopHomeSection";
 type SidePanelModalProps = {
   open: boolean;
 

@@ -1,8 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import { SearchIcon } from "@/components/icons/SearchIcon";
+import { Input } from "@/components/shared/ui/Input";
+import { Button } from "@/components/shared/ui/Button";
+import { SearchIcon } from "@/components/shared/icons/SearchIcon";
 
 type Props = {
   value: string;

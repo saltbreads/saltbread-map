@@ -1,4 +1,4 @@
-import type { InfoRowItem } from "@/components/ui/InfoRow";
+import type { InfoRowItem } from "@/components/shared/ui/InfoRow";
 
 export type DummyShop = {
   id: string;
