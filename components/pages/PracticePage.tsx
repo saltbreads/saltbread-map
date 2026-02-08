@@ -1,5 +1,5 @@
-import NaverMapView2 from "@/components/map/NaverMapView2";
-import { Sidebar } from "../layout/Sidebar";
+import NaverMapView2 from "@/components/features/map/NaverMapView2";
+import { Sidebar } from "../shared/layout/Sidebar";
 
 export default function PracticePage() {
   return (

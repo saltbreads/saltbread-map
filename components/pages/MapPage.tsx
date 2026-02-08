@@ -1,4 +1,4 @@
-import NaverMapView from "@/components/map/NaverMapView";
+import NaverMapView from "@/components/features/map/NaverMapView";
 
 export default function MapPage() {
   return (

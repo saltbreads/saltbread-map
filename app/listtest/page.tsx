@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ShopListItem } from "@/components/shop/ShopListItem";
+import { ShopListItem } from "@/components/features/shop/ShopListItem";
 import { initialShops, type DummyShop } from "@/lib/data/shops.mock";
 
 export default function TestPage() {

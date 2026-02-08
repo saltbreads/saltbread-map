@@ -1,8 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils/cn";
-import { HeartFilledIcon } from "@/components/icons/HeartFilledIcon";
-import { HeartOutlineIcon } from "@/components/icons/HeartOutlineIcon";
+import { HeartFilledIcon } from "@/components/shared/icons/HeartFilledIcon";
+import { HeartOutlineIcon } from "@/components/shared/icons/HeartOutlineIcon";
 
 type LikeButtonProps = {
   isLiked?: boolean;

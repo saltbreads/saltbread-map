@@ -3,13 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 
-import { Logo } from "@/components/brand/Logo";
-import { Button } from "@/components/ui/Button";
-import { SidePanelModal } from "@/components/ui/SidePanelModal";
+import { Logo } from "@/components/shared/brand/Logo";
+import { Button } from "@/components/shared/ui/Button";
+import { SidePanelModal } from "@/components/shared/ui/SidePanelModal";
 import { cn } from "@/lib/utils/cn";
 
-import { SearchController } from "../search/SearchController";
-import { SidebarShopList } from "../shop/SidebarShopList";
+import { SearchController } from "../../features/search/SearchController";
+import { SidebarShopList } from "../../features/shop/SidebarShopList";
 import type { DummyShop } from "@/lib/data/shops.mock";
 
 type SidebarProps = {
