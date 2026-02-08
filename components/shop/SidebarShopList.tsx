@@ -3,6 +3,8 @@
 import * as React from "react";
 import { ShopListItem } from "@/components/shop/ShopListItem";
 import { initialShops, type DummyShop } from "@/lib/data/shops.mock";
+import { distanceKm } from "@/lib/utils/distance";
+import { useMyLocation } from "@/lib/hooks/useMyLocation";
 
 type SidebarShopListProps = {
   onSelect?: (shop: DummyShop) => void;
@@ -10,6 +12,7 @@ type SidebarShopListProps = {
 
 export function SidebarShopList({ onSelect }: SidebarShopListProps) {
   const [shops, setShops] = React.useState<DummyShop[]>(initialShops);
+  const { location: myLoc, isLoading, error } = useMyLocation();
 
   const toggleLike = (id: string, next: boolean) => {
     setShops((prev) =>
@@ -31,9 +34,22 @@ export function SidebarShopList({ onSelect }: SidebarShopListProps) {
     }
   };
 
+  const shopsWithDistance = React.useMemo(() => {
+    return shops.map((shop) => {
+      if (!myLoc) return { ...shop, distanceKm: null };
+
+      const km = distanceKm(
+        { lat: myLoc.lat, lng: myLoc.lng },
+        { lat: shop.latitude, lng: shop.longitude }
+      );
+
+      return { ...shop, distanceKm: km };
+    });
+  }, [shops, myLoc]);
+
   return (
     <div className="flex flex-col gap-3">
-      {shops.map((shop) => (
+      {shopsWithDistance.map((shop) => (
         <div
           key={shop.id}
           role="button"
@@ -48,6 +64,7 @@ export function SidebarShopList({ onSelect }: SidebarShopListProps) {
             rating={shop.rating}
             reviewCount={shop.reviewCount}
             isLiked={shop.isLiked}
+            distanceKm={shop.distanceKm ?? null}
             onToggleLikeAction={(next) => toggleLike(shop.id, next)}
             priceRow={shop.priceRow}
             topInfoItems={shop.topInfoItems}
