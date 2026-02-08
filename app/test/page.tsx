@@ -1,13 +1,13 @@
 "use client";
-import { Button } from "@/components/ui/Button";
-import { SearchController } from "@/components/search/SearchController";
-import { RatingBadge } from "@/components/ui/RatingBadge";
-import { InfoRow } from "@/components/ui/InfoRow";
-import { Tag } from "@/components/ui/Tag";
-import { LikeButton } from "@/components/ui/LikeButton";
-import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
+import { SearchController } from "@/components/search/SearchController";
 import { ShopPhotoGrid } from "@/components/shop/ShopPhotoGrid";
+import { Button } from "@/components/ui/Button";
+import { InfoRow } from "@/components/ui/InfoRow";
+import { LikeButton } from "@/components/ui/LikeButton";
+import { RatingBadge } from "@/components/ui/RatingBadge";
+import { Tag } from "@/components/ui/Tag";
+import { useState } from "react";
 
 export default function Page() {
   const [liked, setLiked] = useState(false);
