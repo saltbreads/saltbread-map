@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { ShopPhotoGrid } from "../../features/shop/ShopPhotoGrid";
 import { ShopDetailTabs } from "../../features/shop/ShopDetailTabs";
-import { ShopDetailTabKey } from "../../features/shop/ShopDetailTabs";
+import { ShopDetailTabKey } from "@/components/features/shop/types";
 import { ShopHomeSection } from "../../features/shop/ShopHomeSection";
 type SidePanelModalProps = {
   open: boolean;
@@ -113,7 +113,7 @@ export function SidePanelModal({
           </div>
         </div>
         <div>
-          <ShopDetailTabs value={tab} onChange={setTab} />
+          <ShopDetailTabs value={tab} onChangeAction={setTab} />
 
           <div className="pt-4">
             {tab === "home" && <div id="panel-home">홈 내용</div>}

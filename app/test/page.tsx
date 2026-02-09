@@ -120,7 +120,7 @@ export default function Page() {
                 "/image/sample6.jpg",
                 "/image/sample7.jpg",
               ]}
-              onOpen={(startIndex) => {
+              onOpenAction={(startIndex) => {
                 // TODO: 여기서 모달/라이트박스 열기
                 console.log("open gallery at", startIndex);
               }}

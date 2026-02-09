@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
+import * as React from "react";
 
 import { Logo } from "@/components/shared/brand/Logo";
 import { Button } from "@/components/shared/ui/Button";
@@ -9,8 +9,7 @@ import { SidePanelModal } from "@/components/shared/ui/SidePanelModal";
 import { cn } from "@/lib/utils/cn";
 
 import { SearchController } from "../../features/search/SearchController";
-import { SidebarShopList } from "../../features/shop/SidebarShopList";
-import type { DummyShop } from "@/lib/data/shops.mock";
+import { ShopList } from "../../features/shop/ShopList";
 
 type SidebarProps = {
   className?: string;
@@ -77,7 +76,7 @@ export function Sidebar({
         {/* 4) 리스트 영역 (스크롤) */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40">
           {/* ✅ onSelect 추가 */}
-          <SidebarShopList onSelect={(shop) => setSelectedShopId(shop.id)} />
+          <ShopList onSelectAction={(shop) => setSelectedShopId(shop.id)} />
         </div>
       </aside>
 

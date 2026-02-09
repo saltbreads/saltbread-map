@@ -11,7 +11,7 @@ export type DummyShop = {
   latitude: number;
   longitude: number;
 
-  priceRow?: InfoRowItem;
+  averagePrice?: number;
   topInfoItems: InfoRowItem[];
 };
 
@@ -25,7 +25,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8794,
     longitude: 128.6286,
-    priceRow: { icon: "🥐", label: "소금빵", value: "3,000원대" },
+    averagePrice: 3000,
     topInfoItems: [
       { icon: "🧈", label: "버터향 강함", value: 30 },
       { icon: "🔥", label: "재방문", value: 18 },
@@ -41,7 +41,7 @@ export const initialShops: DummyShop[] = [
     isLiked: true,
     latitude: 35.8762,
     longitude: 128.6321,
-    priceRow: { icon: "🥐", label: "소금빵", value: "2,500원대" },
+    averagePrice: 2500,
     topInfoItems: [
       { icon: "😋", label: "맛있어요", value: 22 },
       { icon: "🧂", label: "짭짤함 딱", value: 15 },
@@ -56,7 +56,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8562,
     longitude: 129.2247,
-    priceRow: { icon: "🥐", label: "소금빵", value: "3,500원대" },
+    averagePrice: 3500,
     topInfoItems: [
       { icon: "✨", label: "가게가 예뻐요", value: 64 },
       { icon: "🧈", label: "버터향 강함", value: 51 },
@@ -72,7 +72,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8721,
     longitude: 128.6014,
-    priceRow: { icon: "🥐", label: "소금빵", value: "2,800원대" },
+    averagePrice: 2800,
     topInfoItems: [
       { icon: "🌅", label: "아침에 좋아요", value: 19 },
       { icon: "🧈", label: "고소해요", value: 17 },
@@ -88,7 +88,7 @@ export const initialShops: DummyShop[] = [
     isLiked: true,
     latitude: 35.8689,
     longitude: 128.5931,
-    priceRow: { icon: "🥐", label: "소금빵", value: "3,200원대" },
+    averagePrice: 3200,
     topInfoItems: [
       { icon: "🧈", label: "버터 풍미", value: 46 },
       { icon: "🔥", label: "인기 많아요", value: 33 },
@@ -103,7 +103,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8705,
     longitude: 128.6129,
-    priceRow: { icon: "🥐", label: "소금빵", value: "2,300원대" },
+    averagePrice: 2300,
     topInfoItems: [
       { icon: "🙂", label: "무난해요", value: 12 },
       { icon: "🧂", label: "짜지 않아요", value: 9 },
@@ -119,7 +119,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8743,
     longitude: 128.6217,
-    priceRow: { icon: "🥐", label: "소금빵", value: "3,800원대" },
+    averagePrice: 3800,
     topInfoItems: [
       { icon: "🧑‍🍳", label: "장인 느낌", value: 39 },
       { icon: "🧈", label: "버터 듬뿍", value: 35 },
@@ -134,7 +134,7 @@ export const initialShops: DummyShop[] = [
     isLiked: true,
     latitude: 35.8798,
     longitude: 128.6271,
-    priceRow: { icon: "🥐", label: "소금빵", value: "2,700원대" },
+    averagePrice: 2700,
     topInfoItems: [
       { icon: "🚉", label: "접근성 좋아요", value: 20 },
       { icon: "☕", label: "커피랑 좋아요", value: 14 },
@@ -150,7 +150,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8624,
     longitude: 128.5897,
-    priceRow: { icon: "🥐", label: "소금빵", value: "3,300원대" },
+    averagePrice: 3300,
     topInfoItems: [
       { icon: "📅", label: "주말 한정", value: 27 },
       { icon: "🔥", label: "줄 서요", value: 22 },
@@ -165,7 +165,7 @@ export const initialShops: DummyShop[] = [
     isLiked: false,
     latitude: 35.8651,
     longitude: 128.6063,
-    priceRow: { icon: "🥐", label: "소금빵", value: "3,000원대" },
+    averagePrice: 3000,
     topInfoItems: [
       { icon: "🧪", label: "신기해요", value: 16 },
       { icon: "🧈", label: "풍미 좋아요", value: 13 },

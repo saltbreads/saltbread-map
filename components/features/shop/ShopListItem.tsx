@@ -15,12 +15,9 @@ type ShopListItemProps = {
   rating: number;
   reviewCount?: number;
   isLiked?: boolean;
-
-  /** 대략 거리(km). 예: 1.24 => 1.2km, 0.35 => 350m */
   distanceKm?: number | null;
-
   onToggleLikeAction?: (next: boolean) => void;
-  priceRow?: InfoRowItem;
+  averagePrice?: number;
   topInfoItems?: InfoRowItem[]; // 태그로 3개까지
   className?: string;
   variant?: InfoRowVariant;
@@ -47,7 +44,7 @@ export function ShopListItem({
   isLiked,
   distanceKm,
   onToggleLikeAction,
-  priceRow,
+  averagePrice,
   topInfoItems = [],
   className,
 }: ShopListItemProps) {
@@ -86,9 +83,9 @@ export function ShopListItem({
           <p className="mt-1 text-[12px] text-zinc-500">📍 {distanceLabel}</p>
         ) : null}
 
-        {priceRow ? (
+        {averagePrice ? (
           <div className="mt-2">
-            <InfoRow {...priceRow} />
+            <InfoRow icon="💸" label="평균" value={`${averagePrice}원`} />
           </div>
         ) : null}
 

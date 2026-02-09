@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 import { CopyButton } from "@/components/shared/ui/CopyButton";
+
 type AddressInfo = {
   /** 대표 표시(첫 줄) */
   display: string;
@@ -32,7 +33,7 @@ type ContactLinks = {
   website?: string;
 };
 
-type Props = {
+type ShopHomeSectionProps = {
   className?: string;
 
   address: AddressInfo;
@@ -78,7 +79,7 @@ function Row({
 }) {
   return (
     <div className={cn("flex items-start gap-3 py-2", className)}>
-      <div className="mt-[2px] w-5 shrink-0 text-zinc-400">{icon}</div>
+      <div className="mt-0.5 w-5 shrink-0 text-zinc-400">{icon}</div>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
@@ -91,7 +92,7 @@ export function ShopHomeSection({
   business,
   phone,
   links,
-}: Props) {
+}: ShopHomeSectionProps) {
   const [addrOpen, setAddrOpen] = React.useState(false);
   const [hoursOpen, setHoursOpen] = React.useState(false);
   const [showPhone, setShowPhone] = React.useState(false);
@@ -134,7 +135,7 @@ export function ShopHomeSection({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-zinc-500">도로명</p>
-                  <p className="break-words text-[13px] text-zinc-800">
+                  <p className="wrap-break-word text-[13px] text-zinc-800">
                     {address.road}
                   </p>
                 </div>
@@ -146,7 +147,7 @@ export function ShopHomeSection({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-zinc-500">지번</p>
-                  <p className="break-words text-[13px] text-zinc-800">
+                  <p className="wrap-break-word text-[13px] text-zinc-800">
                     {address.jibun}
                   </p>
                 </div>
@@ -160,7 +161,7 @@ export function ShopHomeSection({
                   <p className="text-xs font-semibold text-zinc-500">
                     우편번호
                   </p>
-                  <p className="break-words text-[13px] text-zinc-800">
+                  <p className="wrap-break-word text-[13px] text-zinc-800">
                     {address.zip}
                   </p>
                 </div>
