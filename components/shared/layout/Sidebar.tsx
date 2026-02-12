@@ -13,18 +13,14 @@ import { ShopList } from "../../features/shop/ShopList";
 
 type SidebarProps = {
   className?: string;
-
-  // ㅇㅇ시 ㅇㅇ동 이런 표시용 (나중에 geolocation 붙이면 됨)
-  locationLabel?: string;
-
-  // 필터 UI / 리스트 UI를 바깥에서 주입할 수 있게 슬롯으로 열어둠
+  locationLabel?: string | null;
   filterSlot?: React.ReactNode;
   listSlot?: React.ReactNode;
 };
 
 export function Sidebar({
   className,
-  locationLabel = "ㅇㅇ시 ㅇㅇ동",
+  locationLabel,
   filterSlot,
   listSlot,
 }: SidebarProps) {
@@ -68,19 +64,23 @@ export function Sidebar({
           <div className="text-sm font-bold text-zinc-900">
             내 주변 소금빵집
           </div>
-          <div className="text-xs font-semibold text-zinc-600">
-            {locationLabel}
-          </div>
+
+          {/* 위치 라벨을 못 가져오면 아예 숨김 */}
+          {locationLabel ? (
+            <div className="text-xs font-semibold text-zinc-600">
+              {locationLabel}
+            </div>
+          ) : null}
         </div>
 
         {/* 4) 리스트 영역 (스크롤) */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40">
-          {/* ✅ onSelect 추가 */}
+          {/*  onSelect 추가 */}
           <ShopList onSelectAction={(shop) => setSelectedShopId(shop.id)} />
         </div>
       </aside>
 
-      {/* ✅ 오른쪽 패널 모달 */}
+      {/*  오른쪽 패널 모달 */}
       <SidePanelModal
         open={!!selectedShopId}
         onClose={closeModal}
