@@ -6,6 +6,12 @@ import { ShopPhotoGrid } from "../../features/shop/ShopPhotoGrid";
 import { ShopDetailTabs } from "../../features/shop/ShopDetailTabs";
 import { ShopDetailTabKey } from "@/components/features/shop/types";
 import { ShopHomeSection } from "../../features/shop/ShopHomeSection";
+import { getShopDetailMock } from "@/lib/data/shops.detail.mock";
+import { MenuList } from "@/components/features/shop/MenuList";
+import { InfiniteMasonryPhotoGrid } from "@/components/features/shop/InfiniteMasonryPhotoGrid";
+import { ReviewList } from "@/components/features/review/ReviewList";
+import { reviewsMock } from "@/lib/data/reviews.mock";
+
 type SidePanelModalProps = {
   open: boolean;
 
@@ -15,7 +21,10 @@ type SidePanelModalProps = {
   /** 패널 닫기 */
   onClose: () => void;
 
+  /** 가게 id (목데이터 조회용) */
   shopId?: string;
+
+  /** 홈 탭 하단 등에 추가로 보여줄 내용(옵션) */
   children?: React.ReactNode;
 
   /** 사이드바 너비(px). 기본 360 */
@@ -29,21 +38,33 @@ type SidePanelModalProps = {
 
   /** 패널 폭(px). 기본 420 */
   panelWidthPx?: number;
+
+  /** 열릴 때 기본 탭 */
+  defaultTab?: ShopDetailTabKey;
 };
 
 export function SidePanelModal({
   open,
   onBack,
   onClose,
-  shopId = "상세",
+  shopId = "shop-1",
   children,
 
   sidebarWidthPx = 360,
   gapPx = 16,
   insetYPx = 16,
   panelWidthPx = 420,
+  defaultTab = "home",
 }: SidePanelModalProps) {
-  const [tab, setTab] = React.useState<ShopDetailTabKey>("home");
+  const [tab, setTab] = React.useState<ShopDetailTabKey>(defaultTab);
+
+  // 열릴 때마다 기본 탭으로 리셋(원치 않으면 제거)
+  React.useEffect(() => {
+    if (open) setTab(defaultTab);
+  }, [open, defaultTab]);
+
+  const detail = React.useMemo(() => getShopDetailMock(shopId), [shopId]);
+
   if (!open) return null;
 
   const left = sidebarWidthPx + gapPx;
@@ -52,10 +73,9 @@ export function SidePanelModal({
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* overlay (필요하면 클릭 닫기 가능) */}
+      {/* overlay: 지금은 클릭 막아둠. 밖 클릭으로 닫고싶으면 pointer-events-auto + onClick */}
       <div className="absolute inset-0 pointer-events-none" />
 
-      {/* panel */}
       <div
         className={cn(
           "absolute bg-white shadow-2xl border",
@@ -70,19 +90,13 @@ export function SidePanelModal({
         }}
         role="dialog"
         aria-modal="true"
-        aria-label={`가게 상세 ${shopId}`}
+        aria-label={`가게 상세 ${detail.name}`}
       >
-        {/*  Photo area (padding 없음: edge-to-edge) */}
-        <div className="relative">
+        {/* ===== Photo (고정) ===== */}
+        <div className="relative shrink-0">
           <ShopPhotoGrid
-            images={[
-              "/image/sample-shop-1.jpg",
-              "/image/sample-shop-2.jpg",
-              "/image/sample-shop-3.jpg",
-              "/image/sample-shop-2.jpg",
-              "/image/sample-shop-3.jpg",
-            ]}
-            onOpen={(startIndex) => {
+            images={detail.images}
+            onOpenAction={(startIndex) => {
               console.log("open gallery at", startIndex);
             }}
           />
@@ -111,55 +125,53 @@ export function SidePanelModal({
               ✕
             </button>
           </div>
-        </div>
-        <div>
-          <ShopDetailTabs value={tab} onChangeAction={setTab} />
 
-          <div className="pt-4">
-            {tab === "home" && <div id="panel-home">홈 내용</div>}
-            {tab === "menu" && <div id="panel-menu">메뉴 내용</div>}
-            {tab === "review" && <div id="panel-review">리뷰 내용</div>}
-            {tab === "photo" && <div id="panel-photo">사진 내용</div>}
-          </div>
+          {/* (선택) 사진 아래 가게명 오버레이 필요하면 여기 */}
+          {/* <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/55 to-transparent">
+            <p className="text-white font-semibold">{detail.name}</p>
+          </div> */}
         </div>
-        <div className="mx-auto max-w-[420px] p-4">
-          <ShopHomeSection
-            address={{
-              display: "대구 남구 계명길 12-4 1층",
-              road: "대구광역시 남구 계명길 12-4",
-              jibun: "대구 남구 대명동 123-4",
-              zip: "42401",
-            }}
-            transit={{
-              label: "남산역 2번 출구에서 976m",
-            }}
-            business={{
-              status: "OPEN",
-              statusText: "영업 중",
-              todayText: "오늘 12:00 ~ 02:00",
-              weekly: [
-                { dayLabel: "월", hoursText: "12:00 - 02:00" },
-                { dayLabel: "화", hoursText: "12:00 - 02:00" },
-                { dayLabel: "수", hoursText: "12:00 - 02:00" },
-                { dayLabel: "목", hoursText: "12:00 - 02:00" },
-                { dayLabel: "금", hoursText: "12:00 - 03:00" },
-                { dayLabel: "토", hoursText: "12:00 - 03:00" },
-                { dayLabel: "일", hoursText: "휴무", isClosed: true },
-              ],
-            }}
-            phone={{
-              label: "전화번호 보기",
-              number: "0507-1376-3975",
-            }}
-            links={{
-              instagram: "https://instagram.com/test",
-              kakao: "https://pf.kakao.com/_test",
-              website: "https://example.com",
-            }}
-          />
+
+        {/* ===== Tabs (고정) ===== */}
+        <div className="shrink-0 border-b bg-white">
+          <ShopDetailTabs value={tab} onChangeAction={setTab} />
         </div>
-        {/* body (여기서부터 padding) */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4">{children}</div>
+
+        {/* ===== Tab Content (스크롤) ===== */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {tab === "home" && (
+            <div id="panel-home" className="mx-auto max-w-105 p-4">
+              <ShopHomeSection {...detail.home} />
+              {children ? <div className="mt-4">{children}</div> : null}
+            </div>
+          )}
+
+          {tab === "menu" && (
+            <div id="panel-menu" className="p-4">
+              <MenuList
+                onItemClickAction={(menu) => {
+                  console.log("선택한 메뉴:", menu);
+                }}
+              />
+            </div>
+          )}
+
+          {tab === "review" && (
+            <div id="panel-review" className="p-4">
+              <ReviewList reviews={reviewsMock} />
+            </div>
+          )}
+
+          {tab === "photo" && (
+            <div id="panel-photo" className="p-4">
+              <InfiniteMasonryPhotoGrid
+                onOpenAction={(startIndex) => {
+                  console.log("open gallery at", startIndex);
+                }}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
