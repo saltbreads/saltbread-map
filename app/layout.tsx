@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Script from "next/script";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { NaverMapScript } from "@/components/features/map/NaverMapScript";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,18 +9,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const ncpKeyId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID ?? "";
+
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Script
-          src={`https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID}`}
-          strategy="beforeInteractive"
-        />
+      <body>
+        <NaverMapScript ncpKeyId={ncpKeyId} />
         {children}
       </body>
     </html>
