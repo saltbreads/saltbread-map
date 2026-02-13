@@ -10,26 +10,23 @@ import { cn } from "@/lib/utils/cn";
 
 import { SearchController } from "../../features/search/SearchController";
 import { ShopList } from "../../features/shop/ShopList";
+import { useMapStore } from "@/lib/store/useMapStroe";
 
 type SidebarProps = {
   className?: string;
-  locationLabel?: string | null;
   filterSlot?: React.ReactNode;
   listSlot?: React.ReactNode;
 };
 
-export function Sidebar({
-  className,
-  locationLabel,
-  filterSlot,
-  listSlot,
-}: SidebarProps) {
+export function Sidebar({ className }: SidebarProps) {
   //  선택된 가게 (선택되면 모달 오픈)
-  const [selectedShopId, setSelectedShopId] = React.useState<string | null>(
-    null
-  );
+  const centerLabel = useMapStore((s) => s.centerLabel);
 
-  const closeModal = () => setSelectedShopId(null);
+  // 선택된 가게도 store로 통일 가능 (선택)
+  const selectedShopId = useMapStore((s) => s.selectedShopId);
+  const selectShop = useMapStore((s) => s.selectShop);
+
+  const closeModal = () => selectShop(null);
 
   return (
     <>
@@ -65,18 +62,16 @@ export function Sidebar({
             내 주변 소금빵집
           </div>
 
-          {/* 위치 라벨을 못 가져오면 아예 숨김 */}
-          {locationLabel ? (
-            <div className="text-xs font-semibold text-zinc-600">
-              {locationLabel}
-            </div>
-          ) : null}
+          {/* 위치라벨  */}
+          <div className="text-xs font-semibold text-zinc-600">
+            {centerLabel}
+          </div>
         </div>
 
         {/* 4) 리스트 영역 (스크롤) */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40">
           {/*  onSelect 추가 */}
-          <ShopList onSelectAction={(shop) => setSelectedShopId(shop.id)} />
+          <ShopList onSelectAction={(shop) => selectShop(shop.id)} />
         </div>
       </aside>
 
