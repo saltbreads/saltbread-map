@@ -51,6 +51,9 @@ export function ShopListItem({
   const distanceLabel =
     typeof distanceKm === "number" ? formatDistance(distanceKm) : null;
 
+  const priceText =
+    averagePrice == null ? null : Math.round(averagePrice).toLocaleString();
+
   return (
     <div className={cn("overflow-hidden rounded-xl bg-white", className)}>
       <div className="relative aspect-video w-full bg-zinc-100">
@@ -85,7 +88,7 @@ export function ShopListItem({
 
         {averagePrice ? (
           <div className="mt-2">
-            <InfoRow icon="💸" label="평균" value={`${averagePrice}원`} />
+            <InfoRow icon="💸" label="평균" value={`${priceText}원`} />
           </div>
         ) : null}
 

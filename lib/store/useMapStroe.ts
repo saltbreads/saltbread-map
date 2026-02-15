@@ -1,7 +1,5 @@
 import { create } from "zustand";
-
-export type LatLng = { lat: number; lng: number };
-
+import { DEFAULT_LOCATION, type LatLng } from "@/lib/constants/location";
 // center가 어디 액션으로 바뀌었는지(디버깅/UX에 도움)
 export type CenterSource =
   | "default"
@@ -12,10 +10,6 @@ export type CenterSource =
 
 // 기본 위치(동대구역) 상수
 // - center / label 초기값에 함께 사용
-const DEFAULT_LOCATION = {
-  center: { lat: 35.8796, lng: 128.6296 } as LatLng,
-  label: "동대구역",
-};
 
 type MapState = {
   // 현재 지도/리스트의 기준 좌표
@@ -71,7 +65,10 @@ type MapState = {
 
 export const useMapStore = create<MapState>((set) => ({
   // ---- state ----
-  center: DEFAULT_LOCATION.center,
+  center: {
+    lat: DEFAULT_LOCATION.lat,
+    lng: DEFAULT_LOCATION.lng,
+  },
   source: "default",
   centerLabel: DEFAULT_LOCATION.label,
   selectedShopId: null,
@@ -104,7 +101,10 @@ export const useMapStore = create<MapState>((set) => ({
 
   resetToDefault: () => {
     set({
-      center: DEFAULT_LOCATION.center,
+      center: {
+        lat: DEFAULT_LOCATION.lat,
+        lng: DEFAULT_LOCATION.lng,
+      },
       source: "default",
       centerLabel: DEFAULT_LOCATION.label,
       selectedShopId: null,
