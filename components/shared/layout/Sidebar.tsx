@@ -127,7 +127,7 @@ export function Sidebar({ className }: SidebarProps) {
         if (!alive) return;
 
         setShops((prev) => (offset === 0 ? data : [...prev, ...data]));
-      } catch (e) {
+      } catch {
         if (!alive) return;
         setErrorMsg("가게 목록을 불러오지 못했어");
       } finally {
