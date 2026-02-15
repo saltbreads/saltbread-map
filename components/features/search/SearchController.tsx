@@ -7,26 +7,56 @@ import { SearchBarBase } from "./SearchBarBase";
 type Props = {
   className?: string;
   placeholder?: string;
-  defaultValue?: string; // 필요하면 여기서만
+
+  /** 컨트롤드로 쓰고 싶을 때 */
+  value?: string;
+  onValueChangeAction?: (v: string) => void;
+
+  /** 기존처럼 내부 state로 쓰고 싶을 때 */
+  defaultValue?: string;
+
+  /** submit 시 URL도 동기화할지(선택) */
+  syncToUrl?: boolean;
+
+  /** submit 콜백(선택) */
+  onSubmitValueAction?: (q: string) => void;
 };
 
 export function SearchController({
   className,
   placeholder,
+  value,
+  onValueChangeAction,
   defaultValue = "",
+  syncToUrl = false,
+  onSubmitValueAction,
 }: Props) {
   const router = useRouter();
-  const [value, setValue] = React.useState(defaultValue);
+
+  const isControlled = value != null && onValueChangeAction != null;
+  const [inner, setInner] = React.useState(defaultValue);
+
+  const currentValue = isControlled ? value : inner;
+
+  const setValue = (v: string) => {
+    if (isControlled) onValueChangeAction!(v);
+    else setInner(v);
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const q = value.trim();
-    router.push(q ? `/?q=${encodeURIComponent(q)}` : "/");
+    const q = currentValue.trim();
+
+    onSubmitValueAction?.(q);
+
+    if (syncToUrl) {
+      router.push(q ? `/?q=${encodeURIComponent(q)}` : "/");
+    }
   };
 
   return (
     <SearchBarBase
-      value={value}
+      value={currentValue}
       onChange={(e) => setValue(e.target.value)}
       onSubmit={handleSubmit}
       placeholder={placeholder}
