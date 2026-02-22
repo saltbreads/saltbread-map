@@ -1,4 +1,7 @@
-// lib/api/shops.ts
+import { http } from "@/lib/http/client";
+import type { ApiEnvelope } from "@/lib/http/types";
+import { unwrap } from "@/lib/http/unwrap";
+
 export type ShopLocationDto = {
   id: string;
   name: string;
@@ -13,36 +16,18 @@ export type ShopLocation = {
   lng: number;
 };
 
-type ShopsLocationsResponse = {
-  success: boolean;
-  data: ShopLocationDto[];
-};
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
 export async function getShopLocations(): Promise<ShopLocation[]> {
-  if (!BASE_URL) throw new Error("NEXT_PUBLIC_API_BASE_URL is not set");
+  const res = await http.get<ApiEnvelope<ShopLocationDto[]>>(
+    "/shops/locations"
+  );
 
-  const res = await fetch(`${BASE_URL}/shops/locations`, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
+  const data = unwrap(res.data, res.status);
 
-  if (!res.ok) {
-    throw new Error(
-      `Failed to fetch /shops/locations: ${res.status} ${res.statusText}`
-    );
-  }
-
-  const json = (await res.json()) as ShopsLocationsResponse;
-
-  if (!json?.success || !Array.isArray(json.data)) {
+  if (!Array.isArray(data)) {
     throw new Error("Invalid response from /shops/locations");
   }
 
-  //  프론트에서 쓰기 좋게 lat/lng로 normalize
-  return json.data.map((s) => ({
+  return data.map((s) => ({
     id: s.id,
     name: s.name,
     lat: s.latitude,
@@ -72,31 +57,25 @@ export type SearchShopItem = {
   isLiked?: boolean;
 };
 
-export async function getSearchShops(params: GetSearchShopsParams) {
-  if (!BASE_URL) throw new Error("NEXT_PUBLIC_API_URL is not set");
-
-  const query = new URLSearchParams();
-
-  query.append("lat", params.lat.toString());
-  query.append("lng", params.lng.toString());
-
-  if (params.radiusKm != null)
-    query.append("radiusKm", String(params.radiusKm));
-  if (params.limit != null) query.append("limit", String(params.limit));
-  if (params.offset != null) query.append("offset", String(params.offset));
-  if (params.search) query.append("search", params.search);
-
-  const res = await fetch(`${BASE_URL}/shops/search?${query.toString()}`, {
-    cache: "no-store",
+export async function getSearchShops(
+  params: GetSearchShopsParams
+): Promise<SearchShopItem[]> {
+  const res = await http.get<ApiEnvelope<SearchShopItem[]>>("/shops/search", {
+    params: {
+      lat: params.lat,
+      lng: params.lng,
+      ...(params.radiusKm != null ? { radiusKm: params.radiusKm } : {}),
+      ...(params.limit != null ? { limit: params.limit } : {}),
+      ...(params.offset != null ? { offset: params.offset } : {}),
+      ...(params.search ? { search: params.search } : {}),
+    },
   });
 
-  if (!res.ok) throw new Error("가게 조회 실패");
+  const data = unwrap(res.data, res.status);
 
-  const json = await res.json(); // { success, data }
-
-  if (!json?.success || !Array.isArray(json.data)) {
+  if (!Array.isArray(data)) {
     throw new Error("Invalid response from /shops/search");
   }
 
-  return json.data as SearchShopItem[];
+  return data;
 }

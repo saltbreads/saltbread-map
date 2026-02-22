@@ -22,7 +22,6 @@ http.interceptors.response.use(
     const status = err.response?.status;
     const data = err.response?.data;
 
-    // 서버가 envelope 실패를 내려준 경우(code/meta 보존)
     if (isApiFail(data)) {
       return Promise.reject(
         new ApiError(data.message ?? "요청 실패", {
@@ -33,7 +32,6 @@ http.interceptors.response.use(
       );
     }
 
-    // timeout / 네트워크
     if (err.code === "ECONNABORTED") {
       return Promise.reject(new ApiError("요청 시간 초과", { status }));
     }

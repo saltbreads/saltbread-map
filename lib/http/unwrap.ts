@@ -1,4 +1,3 @@
-// lib/api/unwrap.ts
 import type { ApiEnvelope } from "./types";
 import { ApiError } from "../api/ApiError";
 
