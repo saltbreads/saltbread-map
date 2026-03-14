@@ -79,3 +79,24 @@ export async function getSearchShops(
 
   return data;
 }
+
+export type PhotoHighlightsResponse = {
+  hero: { url: string } | null;
+  items: {
+    id: string;
+    url: string;
+    reviewId: string;
+    createdAt: string;
+  }[];
+  total: number;
+};
+
+export async function getPhotoHighlights(
+  shopId: string
+): Promise<PhotoHighlightsResponse> {
+  const res = await http.get<ApiEnvelope<PhotoHighlightsResponse>>(
+    `/shops/${shopId}/photo-highlights`
+  );
+
+  return unwrap(res.data, res.status);
+}

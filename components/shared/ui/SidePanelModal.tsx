@@ -11,42 +11,25 @@ import { MenuList } from "@/components/features/shop/MenuList";
 import { InfiniteMasonryPhotoGrid } from "@/components/features/shop/InfiniteMasonryPhotoGrid";
 import { ReviewList } from "@/components/features/review/ReviewList";
 import { reviewsMock } from "@/lib/data/reviews.mock";
+import { usePhotoHighlights } from "@/lib/queries/usePhotoHighlights";
 
 type SidePanelModalProps = {
   open: boolean;
-
-  /** 뒤로가기(리스트로) */
-  onBack?: () => void;
-
-  /** 패널 닫기 */
-  onClose: () => void;
-
-  /** 가게 id (목데이터 조회용) */
+  onBackAction?: () => void;
+  onCloseAction: () => void;
   shopId?: string;
-
-  /** 홈 탭 하단 등에 추가로 보여줄 내용(옵션) */
   children?: React.ReactNode;
-
-  /** 사이드바 너비(px). 기본 360 */
   sidebarWidthPx?: number;
-
-  /** 사이드바와 패널 사이 간격(px). 기본 16 */
   gapPx?: number;
-
-  /** 화면 위/아래 여백(px). 기본 16 */
   insetYPx?: number;
-
-  /** 패널 폭(px). 기본 420 */
   panelWidthPx?: number;
-
-  /** 열릴 때 기본 탭 */
   defaultTab?: ShopDetailTabKey;
 };
 
 export function SidePanelModal({
   open,
-  onBack,
-  onClose,
+  onBackAction,
+  onCloseAction,
   shopId = "shop-1",
   children,
 
@@ -57,6 +40,20 @@ export function SidePanelModal({
   defaultTab = "home",
 }: SidePanelModalProps) {
   const [tab, setTab] = React.useState<ShopDetailTabKey>(defaultTab);
+  const {
+    data: highlights,
+    isLoading,
+    error,
+  } = usePhotoHighlights(shopId, open);
+
+  const images = React.useMemo(() => {
+    if (!highlights) return [];
+
+    const heroImage = highlights.hero ? [highlights.hero.url] : [];
+    const reviewImages = highlights.items.map((item) => item.url);
+
+    return [...heroImage, ...reviewImages];
+  }, [highlights]);
 
   // 열릴 때마다 기본 탭으로 리셋(원치 않으면 제거)
   React.useEffect(() => {
@@ -95,7 +92,7 @@ export function SidePanelModal({
         {/* ===== Photo (고정) ===== */}
         <div className="relative shrink-0">
           <ShopPhotoGrid
-            images={detail.images}
+            images={images}
             onOpenAction={(startIndex) => {
               console.log("open gallery at", startIndex);
             }}
@@ -103,10 +100,10 @@ export function SidePanelModal({
 
           {/* 사진 위 오버레이: 뒤로가기 / 닫기 */}
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between p-3">
-            {onBack ? (
+            {onBackAction ? (
               <button
                 type="button"
-                onClick={onBack}
+                onClick={onBackAction}
                 className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
                 aria-label="뒤로가기"
               >
@@ -118,7 +115,7 @@ export function SidePanelModal({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={onCloseAction}
               className="pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
               aria-label="닫기"
             >

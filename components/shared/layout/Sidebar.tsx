@@ -234,7 +234,7 @@ export function Sidebar({ className }: SidebarProps) {
       {/*  오른쪽 패널 모달 */}
       <SidePanelModal
         open={!!selectedShopId}
-        onClose={closeModal}
+        onCloseAction={closeModal}
         shopId={selectedShopId ?? "가게 아이디"}
       >
         {/* 지금은 내용 비워둠 */}
