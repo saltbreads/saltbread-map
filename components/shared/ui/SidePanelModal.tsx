@@ -113,7 +113,7 @@ export function SidePanelModal({
             />
           ) : highlightsError ? (
             <div className="flex h-55 items-center justify-center bg-zinc-100 text-sm text-zinc-500">
-              사진을 불러오지 못했어
+              사진을 불러오지 못했어요
             </div>
           ) : isHighlightsLoading ? (
             <div className="h-55 animate-pulse bg-zinc-100" />
@@ -196,6 +196,7 @@ export function SidePanelModal({
           {tab === "photo" && (
             <div id="panel-photo" className="p-4">
               <InfiniteMasonryPhotoGrid
+                shopId={shopId}
                 onOpenAction={(startIndex) => {
                   console.log("open gallery at", startIndex);
                 }}

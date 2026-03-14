@@ -3,12 +3,21 @@
 import * as React from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
-import {
-  makeMockPhotos,
-  type ShopPhotoItem,
-} from "@/lib/data/shops.photos.mock";
+import { useShopPhotos } from "@/lib/queries/useShopPhotos";
+import type { ShopPhotoItemDto } from "@/lib/api/shops";
+
+type InfiniteMasonryPhotoGridItem = {
+  id: string;
+  src: string;
+  alt?: string;
+  reviewId?: string;
+  createdAt?: string;
+  isHero?: boolean;
+  isVideo?: boolean;
+};
 
 type InfiniteMasonryPhotoGridProps = {
+  shopId: string;
   className?: string;
 
   /** 2열 고정(원하면 3열도 가능하게 열어둠) */
@@ -21,65 +30,72 @@ type InfiniteMasonryPhotoGridProps = {
   onOpenAction?: (startIndex: number) => void;
 
   /** 비디오 뱃지(▶) 클릭 시 별도 동작 */
-  onPlayVideoAction?: (item: ShopPhotoItem, index: number) => void;
-
-  /** 실제 API로 교체할 때 쓰는 fetcher (없으면 mock 사용) */
-  fetcher?: (
-    page: number,
-    pageSize: number
-  ) => Promise<{
-    items: ShopPhotoItem[];
-    hasMore: boolean;
-  }>;
+  onPlayVideoAction?: (
+    item: InfiniteMasonryPhotoGridItem,
+    index: number
+  ) => void;
 };
 
 export function InfiniteMasonryPhotoGrid({
+  shopId,
   className,
   columns = 2,
   pageSize = 12,
   onOpenAction,
   onPlayVideoAction,
-  fetcher,
 }: InfiniteMasonryPhotoGridProps) {
-  const [items, setItems] = React.useState<ShopPhotoItem[]>([]);
-  const [page, setPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(true);
-  const [loading, setLoading] = React.useState(false);
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useShopPhotos(shopId, { limit: pageSize });
 
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
-  const loadMore = React.useCallback(async () => {
-    if (loading || !hasMore) return;
-    setLoading(true);
+  const items = React.useMemo<InfiniteMasonryPhotoGridItem[]>(() => {
+    if (!data?.pages?.length) return [];
 
-    try {
-      const res = fetcher
-        ? await fetcher(page, pageSize)
-        : await Promise.resolve(makeMockPhotos(page, pageSize));
+    const firstPage = data.pages[0];
 
-      setItems((prev) => [...prev, ...res.items]);
-      setHasMore(res.hasMore);
-      setPage((p) => p + 1);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetcher, page, pageSize, loading, hasMore]);
+    const heroItems: InfiniteMasonryPhotoGridItem[] = firstPage.hero
+      ? [
+          {
+            id: "hero-image",
+            src: firstPage.hero.url,
+            alt: "대표 사진",
+            isHero: true,
+          },
+        ]
+      : [];
 
-  // 최초 로드
-  React.useEffect(() => {
-    loadMore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const photoItems = data.pages.flatMap((page) =>
+      page.items.map(
+        (photo: ShopPhotoItemDto): InfiniteMasonryPhotoGridItem => ({
+          id: photo.id,
+          src: photo.url,
+          alt: "가게 사진",
+          reviewId: photo.reviewId,
+          createdAt: photo.createdAt,
+        })
+      )
+    );
 
-  // 무한 스크롤 트리거
+    return [...heroItems, ...photoItems];
+  }, [data]);
+
   React.useEffect(() => {
     const el = sentinelRef.current;
-    if (!el) return;
+    if (!el || !hasNextPage) return;
 
     const io = new IntersectionObserver(
       (entries) => {
         const first = entries[0];
-        if (first?.isIntersecting) loadMore();
+        if (first?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
       },
       {
         root: null,
@@ -90,10 +106,33 @@ export function InfiniteMasonryPhotoGrid({
 
     io.observe(el);
     return () => io.disconnect();
-  }, [loadMore]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  // ✅ columns 기반 2열/3열 masonry
   const colsClass = columns === 3 ? "columns-3" : "columns-2";
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border bg-white p-6 text-sm text-zinc-600">
+        사진 불러오는 중...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-2xl border bg-white p-6 text-sm text-red-500">
+        사진을 불러오지 못했습니다.
+      </div>
+    );
+  }
+
+  if (!items.length) {
+    return (
+      <div className="rounded-2xl border bg-white p-6 text-sm text-zinc-600">
+        등록된 사진이 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className={cn("w-full", className)}>
@@ -104,14 +143,13 @@ export function InfiniteMasonryPhotoGrid({
             type="button"
             onClick={() => onOpenAction?.(idx)}
             className={cn(
-              "relative mb-2 inline-block w-full", // ✅ 컬럼에서 안정적으로
+              "relative mb-2 inline-block w-full",
               "break-inside-avoid",
               "overflow-hidden rounded-xl bg-zinc-100",
               "focus:outline-none focus:ring-2 focus:ring-brand-primary/30"
             )}
             aria-label={`사진 보기 ${idx + 1}`}
           >
-            {/* ✅ 비율 기반: 이미지가 스스로 높이를 결정 */}
             <Image
               src={p.src}
               alt={p.alt ?? "shop photo"}
@@ -122,30 +160,39 @@ export function InfiniteMasonryPhotoGrid({
               priority={idx < 2}
             />
 
-            {/* ✅ 비디오일 때만 뱃지 / (원하면 클릭 액션 분리) */}
             {p.isVideo ? (
-              <button
-                type="button"
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   onPlayVideoAction?.(p, idx);
                 }}
-                className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/65"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onPlayVideoAction?.(p, idx);
+                  }
+                }}
+                className="absolute right-2 top-2 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/65"
                 aria-label="동영상 재생"
               >
                 ▶
-              </button>
+              </span>
             ) : null}
           </button>
         ))}
       </div>
 
-      {/* sentinel */}
       <div ref={sentinelRef} className="h-10" />
 
-      {/* loading / end */}
       <div className="py-3 text-center text-xs text-zinc-500">
-        {loading ? "로딩 중..." : hasMore ? "" : "마지막 사진이에요."}
+        {isFetchingNextPage
+          ? "로딩 중..."
+          : hasNextPage
+          ? ""
+          : "마지막 사진이에요."}
       </div>
     </div>
   );

@@ -157,3 +157,45 @@ export async function getShopMenus(shopId: string): Promise<ShopMenuDto[]> {
 
   return data;
 }
+
+export type ShopPhotoItemDto = {
+  id: string;
+  url: string;
+  reviewId: string;
+  createdAt: string;
+};
+
+export type ShopPhotosResponse = {
+  hero: { url: string } | null;
+  items: ShopPhotoItemDto[];
+  nextCursor: string | null;
+  hasNext: boolean;
+};
+
+export type GetShopPhotosParams = {
+  limit?: number;
+  cursor?: string | null;
+};
+
+export async function getShopPhotos(
+  shopId: string,
+  params?: GetShopPhotosParams
+): Promise<ShopPhotosResponse> {
+  const res = await http.get<ApiEnvelope<ShopPhotosResponse>>(
+    `/shops/${shopId}/photos`,
+    {
+      params: {
+        ...(params?.limit != null ? { limit: params.limit } : {}),
+        ...(params?.cursor ? { cursor: params.cursor } : {}),
+      },
+    }
+  );
+
+  const data = unwrap(res.data, res.status);
+
+  if (!data || !Array.isArray(data.items)) {
+    throw new Error(`Invalid response from /shops/${shopId}/photos`);
+  }
+
+  return data;
+}
