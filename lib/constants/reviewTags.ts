@@ -20,16 +20,3 @@ export const REVIEW_TAG_EMOJI: Record<string, string> = {
   "커피가 맛있어요": "☕",
   "특별한 메뉴가 있어요": "✨",
 };
-
-export type TopInfoItem = { icon: string; label: string };
-
-export function mapLabelsToTopInfoItems(
-  labels: string[] | null | undefined
-): TopInfoItem[] {
-  if (!labels?.length) return [];
-
-  return labels.map((label) => ({
-    icon: REVIEW_TAG_EMOJI[label] ?? "🏷️",
-    label,
-  }));
-}

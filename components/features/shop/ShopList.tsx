@@ -7,7 +7,7 @@ import { ShopListItem } from "@/components/features/shop/ShopListItem";
 import { distanceKm } from "@/lib/utils/distance";
 import { useLocationStore } from "@/lib/store/useLocationStore";
 import { DEFAULT_LOCATION } from "@/lib/constants/location";
-import { mapLabelsToTopInfoItems } from "@/lib/constants/reviewTags";
+import { mapLabelsToTopInfoItems } from "@/lib/mappers/reviewTagEmoji.mapper";
 
 import {
   SearchShopItem,
