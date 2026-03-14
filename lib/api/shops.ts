@@ -100,3 +100,37 @@ export async function getPhotoHighlights(
 
   return unwrap(res.data, res.status);
 }
+
+export type ShopHomeDto = {
+  shopId: string;
+  name: string;
+  address: {
+    road: string | null;
+    jibun: string | null;
+  };
+  telephone: string | null;
+  hoursRaw: string | null;
+  links: {
+    website: string | null;
+    instagram: string | null;
+    kakao: string | null;
+    etc: {
+      type: string;
+      url: string;
+      label: string | null;
+      isPrimary: boolean;
+    }[];
+  };
+};
+
+export async function getShopHome(shopId: string): Promise<ShopHomeDto> {
+  const res = await http.get<ApiEnvelope<ShopHomeDto>>(`/shops/${shopId}/home`);
+
+  const data = unwrap(res.data, res.status);
+
+  if (!data) {
+    throw new Error(`Invalid response from /shops/${shopId}/home`);
+  }
+
+  return data;
+}
