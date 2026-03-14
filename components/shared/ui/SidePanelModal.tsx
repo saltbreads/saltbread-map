@@ -179,6 +179,8 @@ export function SidePanelModal({
           {tab === "menu" && (
             <div id="panel-menu" className="p-4">
               <MenuList
+                shopId={shopId}
+                enabled={open}
                 onItemClickAction={(menu) => {
                   console.log("선택한 메뉴:", menu);
                 }}

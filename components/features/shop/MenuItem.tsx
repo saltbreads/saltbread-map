@@ -5,9 +5,8 @@ import { cn } from "@/lib/utils/cn";
 type MenuItemCardProps = {
   className?: string;
   name: string;
-  price: number | string;
-  imageUrl: string;
-
+  price: string;
+  imageUrl?: string;
   imageAlt?: string;
   currencySuffix?: string;
   onClick?: () => void;
@@ -54,15 +53,21 @@ export function MenuItem({
       </div>
 
       {/* image */}
-      <div className="relative h-14 w-18 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
-        <Image
-          src={imageUrl}
-          alt={imageAlt ?? name}
-          width={72}
-          height={56}
-          sizes="72px"
-          className="h-14 w-18 shrink-0 rounded-lg object-cover bg-zinc-100"
-        />
+      <div className="relative flex h-14 w-18 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-zinc-100">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={imageAlt ?? name}
+            width={72}
+            height={56}
+            sizes="72px"
+            className="h-14 w-18 shrink-0 rounded-lg object-cover"
+          />
+        ) : (
+          <span className="text-[11px] font-semibold text-zinc-400">
+            이미지 없음
+          </span>
+        )}
       </div>
     </div>
   );
