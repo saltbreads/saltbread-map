@@ -134,3 +134,26 @@ export async function getShopHome(shopId: string): Promise<ShopHomeDto> {
 
   return data;
 }
+
+export type ShopMenuDto = {
+  id: string;
+  name: string;
+  price: number | null;
+  priceText: string | null;
+  displayPrice: number | string | null;
+  imageUrl: string | null;
+};
+
+export async function getShopMenus(shopId: string): Promise<ShopMenuDto[]> {
+  const res = await http.get<ApiEnvelope<ShopMenuDto[]>>(
+    `/shops/${shopId}/menus`
+  );
+
+  const data = unwrap(res.data, res.status);
+
+  if (!Array.isArray(data)) {
+    throw new Error(`Invalid response from /shops/${shopId}/menus`);
+  }
+
+  return data;
+}
