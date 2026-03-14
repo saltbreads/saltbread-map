@@ -1,19 +1,18 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils/cn";
-import { ShopPhotoGrid } from "../../features/shop/ShopPhotoGrid";
-import { ShopDetailTabs } from "../../features/shop/ShopDetailTabs";
-import { ShopDetailTabKey } from "@/components/features/shop/types";
-import { ShopHomeSection } from "../../features/shop/ShopHomeSection";
-import { getShopDetailMock } from "@/lib/data/shops.detail.mock";
-import { MenuList } from "@/components/features/shop/MenuList";
-import { InfiniteMasonryPhotoGrid } from "@/components/features/shop/InfiniteMasonryPhotoGrid";
 import { ReviewList } from "@/components/features/review/ReviewList";
-import { reviewsMock } from "@/lib/data/reviews.mock";
+import { InfiniteMasonryPhotoGrid } from "@/components/features/shop/InfiniteMasonryPhotoGrid";
+import { MenuList } from "@/components/features/shop/MenuList";
+import { ShopDetailTabKey } from "@/components/features/shop/types";
+import { getShopDetailMock } from "@/lib/data/shops.detail.mock";
+import { mapShopHomeToSectionProps } from "@/lib/mappers/shopHome.mapper";
 import { usePhotoHighlights } from "@/lib/queries/usePhotoHighlights";
 import { useShopHome } from "@/lib/queries/useShopHome";
-import { mapShopHomeToSectionProps } from "@/lib/mappers/shopHome";
+import { cn } from "@/lib/utils/cn";
+import * as React from "react";
+import { ShopDetailTabs } from "../../features/shop/ShopDetailTabs";
+import { ShopHomeSection } from "../../features/shop/ShopHomeSection";
+import { ShopPhotoGrid } from "../../features/shop/ShopPhotoGrid";
 
 type SidePanelModalProps = {
   open: boolean;
@@ -113,13 +112,13 @@ export function SidePanelModal({
               }}
             />
           ) : highlightsError ? (
-            <div className="flex h-[220px] items-center justify-center bg-zinc-100 text-sm text-zinc-500">
+            <div className="flex h-55 items-center justify-center bg-zinc-100 text-sm text-zinc-500">
               사진을 불러오지 못했어
             </div>
           ) : isHighlightsLoading ? (
-            <div className="h-[220px] animate-pulse bg-zinc-100" />
+            <div className="h-55 animate-pulse bg-zinc-100" />
           ) : (
-            <div className="flex h-[220px] items-center justify-center bg-zinc-100 text-sm text-zinc-400">
+            <div className="flex h-55 items-center justify-center bg-zinc-100 text-sm text-zinc-400">
               사진이 없어요
             </div>
           )}
@@ -190,7 +189,7 @@ export function SidePanelModal({
 
           {tab === "review" && (
             <div id="panel-review" className="p-4">
-              <ReviewList reviews={reviewsMock} />
+              <ReviewList shopId={shopId} />
             </div>
           )}
 
