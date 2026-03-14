@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { NaverMapScript } from "@/components/features/map/NaverMapScript";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <NaverMapScript ncpKeyId={ncpKeyId} />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
