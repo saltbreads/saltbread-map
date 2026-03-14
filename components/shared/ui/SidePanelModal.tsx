@@ -12,6 +12,8 @@ import { InfiniteMasonryPhotoGrid } from "@/components/features/shop/InfiniteMas
 import { ReviewList } from "@/components/features/review/ReviewList";
 import { reviewsMock } from "@/lib/data/reviews.mock";
 import { usePhotoHighlights } from "@/lib/queries/usePhotoHighlights";
+import { useShopHome } from "@/lib/queries/useShopHome";
+import { mapShopHomeToSectionProps } from "@/lib/mappers/shopHome";
 
 type SidePanelModalProps = {
   open: boolean;
@@ -32,7 +34,6 @@ export function SidePanelModal({
   onCloseAction,
   shopId = "shop-1",
   children,
-
   sidebarWidthPx = 360,
   gapPx = 16,
   insetYPx = 16,
@@ -40,11 +41,18 @@ export function SidePanelModal({
   defaultTab = "home",
 }: SidePanelModalProps) {
   const [tab, setTab] = React.useState<ShopDetailTabKey>(defaultTab);
+
   const {
     data: highlights,
-    isLoading,
-    error,
+    isLoading: isHighlightsLoading,
+    error: highlightsError,
   } = usePhotoHighlights(shopId, open);
+
+  const {
+    data: shopHome,
+    isLoading: isShopHomeLoading,
+    error: shopHomeError,
+  } = useShopHome(shopId, open);
 
   const images = React.useMemo(() => {
     if (!highlights) return [];
@@ -55,22 +63,28 @@ export function SidePanelModal({
     return [...heroImage, ...reviewImages];
   }, [highlights]);
 
-  // 열릴 때마다 기본 탭으로 리셋(원치 않으면 제거)
+  const homeSectionProps = React.useMemo(() => {
+    if (!shopHome) return null;
+    return mapShopHomeToSectionProps(shopHome);
+  }, [shopHome]);
+
   React.useEffect(() => {
     if (open) setTab(defaultTab);
   }, [open, defaultTab]);
 
   const detail = React.useMemo(() => getShopDetailMock(shopId), [shopId]);
 
-  if (!open) return null;
-
   const left = sidebarWidthPx + gapPx;
   const top = insetYPx;
   const height = `calc(100dvh - ${insetYPx * 2}px)`;
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* overlay: 지금은 클릭 막아둠. 밖 클릭으로 닫고싶으면 pointer-events-auto + onClick */}
+    <div
+      className={cn(
+        "fixed inset-0 z-50 pointer-events-none transition-opacity duration-200",
+        open ? "opacity-100" : "opacity-0"
+      )}
+    >
       <div className="absolute inset-0 pointer-events-none" />
 
       <div
@@ -89,16 +103,27 @@ export function SidePanelModal({
         aria-modal="true"
         aria-label={`가게 상세 ${detail.name}`}
       >
-        {/* ===== Photo (고정) ===== */}
+        {/* ===== Photo ===== */}
         <div className="relative shrink-0">
-          <ShopPhotoGrid
-            images={images}
-            onOpenAction={(startIndex) => {
-              console.log("open gallery at", startIndex);
-            }}
-          />
+          {images.length > 0 ? (
+            <ShopPhotoGrid
+              images={images}
+              onOpenAction={(startIndex) => {
+                console.log("open gallery at", startIndex);
+              }}
+            />
+          ) : highlightsError ? (
+            <div className="flex h-[220px] items-center justify-center bg-zinc-100 text-sm text-zinc-500">
+              사진을 불러오지 못했어
+            </div>
+          ) : isHighlightsLoading ? (
+            <div className="h-[220px] animate-pulse bg-zinc-100" />
+          ) : (
+            <div className="flex h-[220px] items-center justify-center bg-zinc-100 text-sm text-zinc-400">
+              사진이 없어요
+            </div>
+          )}
 
-          {/* 사진 위 오버레이: 뒤로가기 / 닫기 */}
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between p-3">
             {onBackAction ? (
               <button
@@ -122,23 +147,31 @@ export function SidePanelModal({
               ✕
             </button>
           </div>
-
-          {/* (선택) 사진 아래 가게명 오버레이 필요하면 여기 */}
-          {/* <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/55 to-transparent">
-            <p className="text-white font-semibold">{detail.name}</p>
-          </div> */}
         </div>
 
-        {/* ===== Tabs (고정) ===== */}
+        {/* ===== Tabs ===== */}
         <div className="shrink-0 border-b bg-white">
           <ShopDetailTabs value={tab} onChangeAction={setTab} />
         </div>
 
-        {/* ===== Tab Content (스크롤) ===== */}
+        {/* ===== Content ===== */}
         <div className="flex-1 min-h-0 overflow-y-auto">
           {tab === "home" && (
             <div id="panel-home" className="mx-auto max-w-105 p-4">
-              <ShopHomeSection {...detail.home} />
+              {shopHomeError ? (
+                <p className="text-sm text-red-500">
+                  가게 정보를 불러오지 못했어요.
+                </p>
+              ) : homeSectionProps ? (
+                <ShopHomeSection {...homeSectionProps} />
+              ) : isShopHomeLoading ? (
+                <p className="text-sm text-zinc-500">
+                  가게 정보를 불러오는 중...
+                </p>
+              ) : (
+                <p className="text-sm text-zinc-500">가게 정보가 없어요.</p>
+              )}
+
               {children ? <div className="mt-4">{children}</div> : null}
             </div>
           )}
