@@ -1,43 +1,47 @@
 "use client";
 
 import { Logo } from "@/components/shared/brand/Logo";
-import { Button } from "@/components/shared/ui/Button";
+import { FcGoogle } from "react-icons/fc";
+import { SiNaver, SiKakaotalk } from "react-icons/si";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-dvh flex items-center justify-center px-6">
-      <section className="w-full max-w-sm">
-        {/* 로고 */}
-        <div className="flex flex-col items-center gap-3 mb-10">
-          <Logo size="lg" />
-          <p className="text-sm text-muted-foreground text-center">
+    <main className="min-h-dvh flex items-center justify-center bg-white px-6">
+      <section className="w-full max-w-sm md:max-w-md">
+        <div className="flex flex-col items-center gap-4 mb-10 md:mb-12">
+          <Logo size="xl" />
+          <p className="text-sm md:text-base text-black text-center">
             내 주변 소금빵집을 한눈에
           </p>
         </div>
 
-        {/* 로그인 버튼 */}
-        <div className="flex flex-col gap-3">
-          {/* Google */}
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full"
+        <div className="flex flex-col gap-3 md:gap-4">
+          <a
             href="/api/auth/google"
+            className="flex items-center justify-center gap-2 md:gap-3 h-12 md:h-14 rounded-xl border border-zinc-300 bg-white text-zinc-900 font-medium md:text-base hover:bg-zinc-50 transition"
           >
+            <FcGoogle className="text-[20px] md:text-[22px]" />
             Google로 로그인
-          </Button>
+          </a>
 
-          {/* Naver */}
-          <Button
-            size="lg"
-            className="w-full bg-[#03C75A] hover:bg-[#02b350]"
+          <a
             href="/api/auth/naver"
+            className="flex items-center justify-center gap-2 md:gap-3 h-12 md:h-14 rounded-xl bg-[#03C75A] text-white font-medium md:text-base hover:brightness-95 transition"
           >
+            <SiNaver className="text-[18px] md:text-[20px]" />
             네이버로 로그인
-          </Button>
+          </a>
+
+          <a
+            href="/api/auth/kakao"
+            className="flex items-center justify-center gap-2 md:gap-3 h-12 md:h-14 rounded-xl bg-[#FEE500] text-black font-medium md:text-base hover:brightness-95 transition"
+          >
+            <SiKakaotalk className="text-[18px] md:text-[20px]" />
+            카카오로 로그인
+          </a>
         </div>
 
-        <p className="mt-6 text-xs text-muted-foreground text-center leading-relaxed">
+        <p className="mt-6 md:mt-7 text-xs md:text-sm text-zinc-500 text-center leading-relaxed">
           계속 진행하면 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.
         </p>
       </section>
