@@ -17,6 +17,8 @@ import { getSearchShops } from "@/lib/api/shops";
 
 import { useLocationStore } from "@/lib/store/useLocationStore";
 import { DEFAULT_LOCATION } from "@/lib/constants/location";
+import { useAuthStore } from "@/lib/store/auth.store";
+import { postAuthLogout } from "@/lib/api/auth";
 
 type SidebarProps = {
   className?: string;
@@ -82,6 +84,13 @@ export function Sidebar({ className }: SidebarProps) {
       },
     [myLoc]
   );
+
+  /**
+   * 인증 상태(store)
+   * - 로그인 여부에 따라 버튼 문구/동작 분기
+   */
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
 
   /**
    * API 결과 상태
@@ -151,6 +160,21 @@ export function Sidebar({ className }: SidebarProps) {
     setOffset(offset + limit);
   };
 
+  /**
+   * 로그아웃
+   * - 서버 로그아웃 요청 후 프론트 인증 상태 초기화
+   * - 서버 요청이 실패해도 클라이언트 상태는 비워서 UI를 로그인 상태로 되돌림
+   */
+  const handleLogout = async () => {
+    try {
+      await postAuthLogout();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      clearAuth();
+    }
+  };
+
   return (
     <>
       <aside
@@ -166,9 +190,15 @@ export function Sidebar({ className }: SidebarProps) {
             <Logo size="md" />
           </Link>
 
-          <Button variant="primary" size="sm" href="/login">
-            로그인
-          </Button>
+          {isAuthenticated ? (
+            <Button variant="secondary" size="sm" onClick={handleLogout}>
+              로그아웃
+            </Button>
+          ) : (
+            <Button variant="primary" size="sm" href="/login">
+              로그인
+            </Button>
+          )}
         </div>
 
         {/* 2) 검색 (서치바만) */}
