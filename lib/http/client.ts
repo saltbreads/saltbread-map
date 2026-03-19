@@ -1,43 +1,129 @@
-import axios, { AxiosError } from "axios";
-import type { ApiEnvelope } from "./types";
-import { ApiError } from "../api/ApiError";
-import { isApiFail } from "./guards";
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  type InternalAxiosRequestConfig,
+} from "axios";
+import { useAuthStore } from "@/lib/store/auth.store";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-if (!BASE_URL) throw new Error("NEXT_PUBLIC_API_BASE_URL is not set");
+type RefreshResponse = {
+  success: boolean;
+  data: {
+    accessToken: string;
+    sessionId: string;
+  };
+};
+
+type RetryableRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+};
 
 export const http = axios.create({
-  baseURL: BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   withCredentials: true,
-  timeout: 15_000,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
 });
 
+/**
+ * 요청 인터셉터
+ * - store에 accessToken이 있으면 Authorization 자동 첨부
+ */
+http.interceptors.request.use((config) => {
+  const accessToken = useAuthStore.getState().accessToken;
+
+  if (accessToken) {
+    if (config.headers instanceof AxiosHeaders) {
+      config.headers.set("Authorization", `Bearer ${accessToken}`);
+    } else {
+      config.headers = new AxiosHeaders(config.headers);
+      config.headers.set("Authorization", `Bearer ${accessToken}`);
+    }
+  }
+
+  return config;
+});
+
+let refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * refresh 공통 함수
+ * - 동시에 여러 요청이 401 나도 refresh는 한 번만 수행
+ */
+async function refreshAccessToken(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const response = await axios.post<RefreshResponse>(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+
+        const payload = response.data?.data;
+
+        if (!payload?.accessToken || !payload?.sessionId) {
+          throw new Error("Invalid refresh response");
+        }
+
+        useAuthStore.getState().setAuth({
+          accessToken: payload.accessToken,
+          sessionId: payload.sessionId,
+        });
+
+        return payload.accessToken;
+      } catch {
+        useAuthStore.getState().clearAuth();
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+
+  return refreshPromise;
+}
+
+/**
+ * 응답 인터셉터
+ * - 401이면 refresh 시도
+ * - refresh 성공 시 원래 요청 재시도
+ * - refresh 실패 시 clearAuth
+ */
 http.interceptors.response.use(
-  (res) => res,
-  (err: AxiosError<ApiEnvelope<unknown>>) => {
-    const status = err.response?.status;
-    const data = err.response?.data;
+  (response) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
+    const status = error.response?.status;
 
-    if (isApiFail(data)) {
-      return Promise.reject(
-        new ApiError(data.message ?? "요청 실패", {
-          status,
-          code: data.code,
-          meta: data.meta,
-        })
-      );
+    if (!originalRequest) {
+      return Promise.reject(error);
     }
 
-    if (err.code === "ECONNABORTED") {
-      return Promise.reject(new ApiError("요청 시간 초과", { status }));
+    const requestUrl = originalRequest.url ?? "";
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/refresh") ||
+      requestUrl.includes("/auth/logout") ||
+      requestUrl.includes("/auth/exchange");
+
+    if (status !== 401 || originalRequest._retry || isAuthEndpoint) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(
-      new ApiError(err.message || "네트워크 오류", { status })
-    );
+    originalRequest._retry = true;
+
+    const newAccessToken = await refreshAccessToken();
+
+    if (!newAccessToken) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest.headers instanceof AxiosHeaders) {
+      originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`);
+    } else {
+      originalRequest.headers = new AxiosHeaders(originalRequest.headers);
+      originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`);
+    }
+
+    return http(originalRequest);
   }
 );

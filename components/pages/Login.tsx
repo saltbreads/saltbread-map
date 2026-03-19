@@ -3,7 +3,11 @@
 import { Logo } from "@/components/shared/brand/Logo";
 import { FcGoogle } from "react-icons/fc";
 import { SiNaver, SiKakaotalk } from "react-icons/si";
-
+import {
+  getGoogleOAuthUrl,
+  getKakaoOAuthUrl,
+  getNaverOAuthUrl,
+} from "@/lib/api/auth";
 export default function LoginPage() {
   return (
     <main className="min-h-dvh flex items-center justify-center bg-white px-6">
@@ -17,7 +21,7 @@ export default function LoginPage() {
 
         <div className="flex flex-col gap-3 md:gap-4">
           <a
-            href="/api/auth/google"
+            href={getGoogleOAuthUrl()}
             className="flex items-center justify-center gap-2 md:gap-3 h-12 md:h-14 rounded-xl border border-zinc-300 bg-white text-zinc-900 font-medium md:text-base hover:bg-zinc-50 transition"
           >
             <FcGoogle className="text-[20px] md:text-[22px]" />
@@ -25,7 +29,7 @@ export default function LoginPage() {
           </a>
 
           <a
-            href="/api/auth/naver"
+            href={getNaverOAuthUrl()}
             className="flex items-center justify-center gap-2 md:gap-3 h-12 md:h-14 rounded-xl bg-[#03C75A] text-white font-medium md:text-base hover:brightness-95 transition"
           >
             <SiNaver className="text-[18px] md:text-[20px]" />
@@ -33,7 +37,7 @@ export default function LoginPage() {
           </a>
 
           <a
-            href="/api/auth/kakao"
+            href={getKakaoOAuthUrl()}
             className="flex items-center justify-center gap-2 md:gap-3 h-12 md:h-14 rounded-xl bg-[#FEE500] text-black font-medium md:text-base hover:brightness-95 transition"
           >
             <SiKakaotalk className="text-[18px] md:text-[20px]" />
