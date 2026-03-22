@@ -43,7 +43,7 @@ export default function NaverMapViewApi() {
       // 커스텀 마커 사용하기
       markersRef.current = shops.map((shop) => {
         const marker = new naver.maps.Marker({
-          position: new naver.maps.LatLng(shop.latitude, shop.longitude),
+          position: new naver.maps.LatLng(shop.lat, shop.lng),
           map,
           title: shop.name,
           icon: {
