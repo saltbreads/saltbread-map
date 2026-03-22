@@ -77,6 +77,8 @@ export function SidePanelModal({
   const top = insetYPx;
   const height = `calc(100dvh - ${insetYPx * 2}px)`;
 
+  if (!open) return null;
+
   return (
     <div
       className={cn(
