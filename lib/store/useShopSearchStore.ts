@@ -16,7 +16,7 @@ type ShopSearchState = {
 
 export const useShopSearchStore = create<ShopSearchState>((set) => ({
   search: "",
-  radiusKm: 3,
+  radiusKm: 50,
   limit: 10,
   offset: 0,
 

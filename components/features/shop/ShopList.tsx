@@ -136,22 +136,17 @@ export function ShopList({
           // hover 시 상세 데이터 prefetch
           // - 사용자가 관심을 보인 카드만 미리 데이터 요청
           onMouseEnter={() => {
-            console.log("hover enter:", shop.id);
             prefetchShopDetail(shop.id);
           }}
-          onPointerEnter={() => {
-            console.log("pointer enter:", shop.id);
-          }}
+          onPointerEnter={() => {}}
           //키보드 포커스 접근성 대응
           onFocus={() => prefetchShopDetail(shop.id)}
           // 모바일 대응
           // - hover가 없기 때문에 touch 시작 시 prefetch
           onTouchStart={() => {
-            console.log("onTouchStart:", shop.id);
             prefetchShopDetail(shop.id);
           }}
           onClick={() => {
-            console.log("click:", shop.id);
             handleSelect(shop);
           }}
           onKeyDown={(e) => handleKeyDown(e, shop)}

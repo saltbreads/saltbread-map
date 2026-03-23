@@ -1,25 +1,32 @@
 import { create } from "zustand";
 
+type SelectedShop = {
+  id: string;
+  lat: number;
+  lng: number;
+  name: string;
+};
+
 type SelectedShopStore = {
-  selectedShopId: string | null;
+  selectedShop: SelectedShop | null;
   isSidePanelOpen: boolean;
-  openShopDetail: (shopId: string) => void;
+  openShopDetail: (shop: SelectedShop) => void;
   closeShopDetail: () => void;
 };
 
 export const useSelectedShopStore = create<SelectedShopStore>((set) => ({
-  selectedShopId: null,
+  selectedShop: null,
   isSidePanelOpen: false,
 
-  openShopDetail: (shopId) =>
+  openShopDetail: (shop) =>
     set({
-      selectedShopId: shopId,
+      selectedShop: shop,
       isSidePanelOpen: true,
     }),
 
   closeShopDetail: () =>
     set({
-      selectedShopId: null,
+      selectedShop: null,
       isSidePanelOpen: false,
     }),
 }));
