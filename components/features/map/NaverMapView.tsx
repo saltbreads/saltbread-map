@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { getShopLocations, type ShopLocation } from "@/lib/api/shops";
+import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
 
 export default function NaverMapView() {
   const mapElementRef = useRef<HTMLDivElement>(null);
@@ -9,6 +10,7 @@ export default function NaverMapView() {
   const markersRef = useRef<naver.maps.Marker[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clusterRef = useRef<any>(null);
+  const openShopDetail = useSelectedShopStore((state) => state.openShopDetail);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,15 +80,23 @@ export default function NaverMapView() {
 
         // 마커 생성
         const markers = shops.map((shop: ShopLocation) => {
-          return new naver.maps.Marker({
+          const marker = new naver.maps.Marker({
             position: new naver.maps.LatLng(Number(shop.lat), Number(shop.lng)),
             title: shop.name,
             icon: {
-              url: "/image/saltBreadPin.png", // 기본 마커 이미지
+              url: "/image/saltBreadPin.png",
               size: new naver.maps.Size(50, 50),
-              anchor: new naver.maps.Point(25, 25), // 중심 기준점
+              anchor: new naver.maps.Point(25, 25),
             },
           });
+
+          naver.maps.Event.addListener(marker, "click", () => {
+            console.log("마커 클릭됨:", shop.id);
+            openShopDetail(shop.id);
+            console.log("store 넣은 직후:", shop.id);
+          });
+
+          return marker;
         });
 
         markersRef.current = markers;
