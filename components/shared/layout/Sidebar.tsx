@@ -19,6 +19,7 @@ import { useLocationStore } from "@/lib/store/useLocationStore";
 import { DEFAULT_LOCATION } from "@/lib/constants/location";
 import { useAuthStore } from "@/lib/store/auth.store";
 import { postAuthLogout } from "@/lib/api/auth";
+import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
 
 type SidebarProps = {
   className?: string;
@@ -42,14 +43,14 @@ function useDebouncedValue<T>(value: T, ms = 250) {
 }
 
 export function Sidebar({ className }: SidebarProps) {
-  //  선택된 가게 (선택되면 모달 오픈)
+  // 지도 중심 라벨은 기존 store 그대로 사용
   const centerLabel = useMapStore((s) => s.centerLabel);
 
-  // 선택된 가게도 store로 통일 가능 (선택)
-  const selectedShopId = useMapStore((s) => s.selectedShopId);
-  const selectShop = useMapStore((s) => s.selectShop);
-
-  const closeModal = () => selectShop(null);
+  // 선택된 가게 / 사이드패널 상태는 useSelectedShopStore 사용
+  const selectedShopId = useSelectedShopStore((s) => s.selectedShopId);
+  const isSidePanelOpen = useSelectedShopStore((s) => s.isSidePanelOpen);
+  const openShopDetail = useSelectedShopStore((s) => s.openShopDetail);
+  const closeShopDetail = useSelectedShopStore((s) => s.closeShopDetail);
 
   /**
    * 검색 상태(store)
@@ -129,10 +130,6 @@ export function Sidebar({ className }: SidebarProps) {
           search: q.length ? q : undefined,
         });
 
-        // getSearchShops가 {success,data}를 반환한다면:
-        // const json = await getSearchShops(...);
-        // const data = json.data;
-
         if (!alive) return;
 
         setShops((prev) => (offset === 0 ? data : [...prev, ...data]));
@@ -184,7 +181,6 @@ export function Sidebar({ className }: SidebarProps) {
           className
         )}
       >
-        {/* 1) 헤더: 로고 + 로그인 */}
         <div className="h-14 px-4 flex items-center justify-between border-b">
           <Link href="/" className="inline-flex items-center">
             <Logo size="md" />
@@ -201,50 +197,40 @@ export function Sidebar({ className }: SidebarProps) {
           )}
         </div>
 
-        {/* 2) 검색 (서치바만) */}
         <div className="px-4 py-3">
           <SearchController
             value={search}
             onValueChangeAction={(v) => {
               setSearch(v);
-              resetPaging(); // 검색 바뀌면 offset 0
+              resetPaging();
             }}
             placeholder="빵집 이름이나 지역을 검색해보세요"
             className="w-full"
           />
         </div>
 
-        {/* 3) 내 주변 + 동네 */}
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="text-sm font-bold text-zinc-900">
             내 주변 소금빵집
           </div>
 
-          {/* 위치라벨 */}
           <div className="text-xs font-semibold text-zinc-600">
             {centerLabel}
           </div>
         </div>
 
-        {/* 4) 리스트 영역 (스크롤) */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40">
-          {/* 로딩/에러 UI */}
           {loading && shops.length === 0 ? (
             <div className="text-sm text-zinc-500">불러오는 중…</div>
           ) : errorMsg ? (
             <div className="text-sm text-red-600">{errorMsg}</div>
           ) : (
             <>
-              {/* ✅ API로 받은 데이터 내려주기
-                  ✅ distanceKm 계산 로직은 ShopList 내부에서 처리하도록 유지 */}
               <ShopList
                 shops={shops}
-                onSelectAction={(shop) => selectShop(shop.id)}
+                onSelectAction={(shop) => openShopDetail(shop.id)}
               />
 
-              {/* ✅ 더보기(옵션)
-                  - store에 setOffset이 있으면 동작
-                  - 없으면 버튼이 비활성처럼 동작 */}
               <div className="pt-4">
                 <Button
                   variant="secondary"
@@ -261,13 +247,12 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </aside>
 
-      {/*  오른쪽 패널 모달 */}
       <SidePanelModal
-        open={!!selectedShopId}
-        onCloseAction={closeModal}
+        open={isSidePanelOpen}
+        onCloseAction={closeShopDetail}
         shopId={selectedShopId ?? "가게 아이디"}
       >
-        {/* 지금은 내용 비워둠 */}
+        {/* 필요하면 여기 상세 패널 컴포넌트 넣기 */}
       </SidePanelModal>
     </>
   );
