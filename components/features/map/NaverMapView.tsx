@@ -91,9 +91,12 @@ export default function NaverMapView() {
           });
 
           naver.maps.Event.addListener(marker, "click", () => {
-            console.log("마커 클릭됨:", shop.id);
-            openShopDetail(shop.id);
-            console.log("store 넣은 직후:", shop.id);
+            openShopDetail({
+              id: shop.id,
+              lat: Number(shop.lat),
+              lng: Number(shop.lng),
+              name: shop.name,
+            });
           });
 
           return marker;

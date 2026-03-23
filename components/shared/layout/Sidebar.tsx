@@ -47,7 +47,7 @@ export function Sidebar({ className }: SidebarProps) {
   const centerLabel = useMapStore((s) => s.centerLabel);
 
   // 선택된 가게 / 사이드패널 상태는 useSelectedShopStore 사용
-  const selectedShopId = useSelectedShopStore((s) => s.selectedShopId);
+  const selectedShopId = useSelectedShopStore((s) => s.selectedShop);
   const isSidePanelOpen = useSelectedShopStore((s) => s.isSidePanelOpen);
   const openShopDetail = useSelectedShopStore((s) => s.openShopDetail);
   const closeShopDetail = useSelectedShopStore((s) => s.closeShopDetail);
@@ -228,7 +228,14 @@ export function Sidebar({ className }: SidebarProps) {
             <>
               <ShopList
                 shops={shops}
-                onSelectAction={(shop) => openShopDetail(shop.id)}
+                onSelectAction={(shop) =>
+                  openShopDetail({
+                    id: shop.id,
+                    lat: Number(shop.latitude),
+                    lng: Number(shop.longitude),
+                    name: shop.name,
+                  })
+                }
               />
 
               <div className="pt-4">
@@ -250,7 +257,7 @@ export function Sidebar({ className }: SidebarProps) {
       <SidePanelModal
         open={isSidePanelOpen}
         onCloseAction={closeShopDetail}
-        shopId={selectedShopId ?? "가게 아이디"}
+        shopId={selectedShopId?.id ?? "가게 아이디"}
       >
         {/* 필요하면 여기 상세 패널 컴포넌트 넣기 */}
       </SidePanelModal>
