@@ -120,6 +120,8 @@ export default function NaverMapView() {
           });
 
           naver.maps.Event.addListener(marker, "click", () => {
+            if (selectedShop?.id === shop.id) return;
+
             openShopDetail({
               id: shop.id,
               lat: Number(shop.lat),
