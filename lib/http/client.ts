@@ -41,12 +41,13 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-let refreshPromise: Promise<string | null> | null = null;
-
 /**
  * refresh 공통 함수
  * - 동시에 여러 요청이 401 나도 refresh는 한 번만 수행
  */
+let refreshPromise: Promise<string | null> | null = null;
+let isRedirectingToLogin = false;
+
 async function refreshAccessToken(): Promise<string | null> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
@@ -73,6 +74,12 @@ async function refreshAccessToken(): Promise<string | null> {
         return payload.accessToken;
       } catch {
         useAuthStore.getState().clearAuth();
+
+        if (typeof window !== "undefined" && !isRedirectingToLogin) {
+          isRedirectingToLogin = true;
+          window.location.replace("/login");
+        }
+
         return null;
       } finally {
         refreshPromise = null;
