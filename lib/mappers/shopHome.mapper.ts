@@ -9,6 +9,7 @@ export function mapShopHomeToSectionProps(data: ShopHomeDto) {
   const businessStatus: BusinessStatus = "UNKNOWN";
 
   return {
+    name: data.name,
     address: {
       display: displayAddress,
       road: data.address.road ?? undefined,

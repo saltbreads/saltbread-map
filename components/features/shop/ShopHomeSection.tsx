@@ -35,7 +35,7 @@ type ContactLinks = {
 
 type ShopHomeSectionProps = {
   className?: string;
-
+  name: string;
   address: AddressInfo;
   transit?: TransitInfo;
 
@@ -87,6 +87,7 @@ function Row({
 
 export function ShopHomeSection({
   className,
+  name,
   address,
   transit,
   business,
@@ -102,12 +103,16 @@ export function ShopHomeSection({
 
   return (
     <div className={cn("w-full", className)}>
+      <p className="mb-2 truncate text-[18px] font-bold leading-snug text-zinc-900">
+        {name}
+      </p>
+
       {/* ===== Address ===== */}
       <Row icon={<span>📍</span>}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <p className="truncate text-[14px] font-semibold text-zinc-900">
+              <p className="truncate text-[13px] text-zinc-600">
                 {address.display}
               </p>
 
@@ -124,7 +129,6 @@ export function ShopHomeSection({
             </div>
           </div>
 
-          {/* 대표 주소 복사 */}
           <CopyButton text={address.display} />
         </div>
 

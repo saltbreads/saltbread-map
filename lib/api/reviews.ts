@@ -90,3 +90,15 @@ export async function getShopReviewTags(
 
   return data;
 }
+
+export type CreateReviewRequest = {
+  shopId: string;
+  rating: number;
+  content?: string;
+  imageUrls?: string[];
+};
+
+export async function postReview({ shopId, ...body }: CreateReviewRequest) {
+  const response = await http.post(`/shops/${shopId}/reviews`, body);
+  return response.data;
+}
