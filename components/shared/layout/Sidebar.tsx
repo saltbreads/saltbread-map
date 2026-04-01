@@ -21,6 +21,8 @@ import { useAuthStore } from "@/lib/store/auth.store";
 import { postAuthLogout } from "@/lib/api/auth";
 import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
 
+import { getMyLocation } from "@/lib/utils/geolocation";
+
 type SidebarProps = {
   className?: string;
   filterSlot?: React.ReactNode;
@@ -45,6 +47,9 @@ function useDebouncedValue<T>(value: T, ms = 250) {
 export function Sidebar({ className }: SidebarProps) {
   // 지도 중심 라벨은 기존 store 그대로 사용
   const centerLabel = useMapStore((s) => s.centerLabel);
+  const setCenter = useMapStore((s) => s.setCenter);
+  const setCenterWithLabel = useMapStore((s) => s.setCenterWithLabel);
+  const setMyLocation = useLocationStore((s) => s.setMyLocation);
 
   // 선택된 가게 / 사이드패널 상태는 useSelectedShopStore 사용
   const selectedShopId = useSelectedShopStore((s) => s.selectedShop);
@@ -76,15 +81,47 @@ export function Sidebar({ className }: SidebarProps) {
    * - myLocation이 null이면 DEFAULT_LOCATION으로 fallback
    * - 백엔드 설계상 lat/lng는 "내 위치 기준"으로 보내는 게 맞음
    */
-  const myLoc = useLocationStore((s) => s.myLocation);
-  const baseLoc = React.useMemo(
-    () =>
-      myLoc ?? {
-        lat: DEFAULT_LOCATION.lat,
-        lng: DEFAULT_LOCATION.lng,
-      },
-    [myLoc]
-  );
+  const [queryBaseLoc, setQueryBaseLoc] = React.useState({
+    lat: DEFAULT_LOCATION.lat,
+    lng: DEFAULT_LOCATION.lng,
+  });
+  const baseLoc = queryBaseLoc;
+
+  const handleUseMyLocation = async () => {
+    try {
+      const loc = await getMyLocation();
+
+      setMyLocation(loc);
+
+      // 1. 먼저 offset 초기화 (강제 재조회 트리거)
+      if (typeof setOffset === "function") {
+        setOffset(0);
+      }
+
+      setSearch("");
+      resetPaging();
+
+      // 2. 리스트 기준 좌표 변경
+      setQueryBaseLoc({
+        lat: loc.lat,
+        lng: loc.lng,
+      });
+
+      // 3. 지도 이동
+      setCenterWithLabel(
+        {
+          center: {
+            lat: loc.lat,
+            lng: loc.lng,
+          },
+          label: "내 위치",
+        },
+        "myLocation"
+      );
+    } catch (error) {
+      console.error("내 위치를 가져오지 못했어:", error);
+    }
+  };
 
   /**
    * 인증 상태(store)
@@ -99,6 +136,7 @@ export function Sidebar({ className }: SidebarProps) {
   const [shops, setShops] = React.useState<SearchShopItem[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+  const listScrollRef = React.useRef<HTMLDivElement>(null);
 
   /**
    * 검색어 디바운스(입력 중 API 호출 최소화)
@@ -147,6 +185,29 @@ export function Sidebar({ className }: SidebarProps) {
       alive = false;
     };
   }, [baseLoc.lat, baseLoc.lng, radiusKm, limit, offset, debouncedSearch]);
+
+  React.useEffect(() => {
+    const q = debouncedSearch.trim();
+
+    if (!q) return;
+    if (offset !== 0) return;
+    if (shops.length === 0) return;
+
+    const firstShop = shops[0];
+
+    setCenter(
+      {
+        lat: Number(firstShop.latitude),
+        lng: Number(firstShop.longitude),
+      },
+      "searchHere"
+    );
+
+    listScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [shops, debouncedSearch, offset, setCenter]);
 
   /**
    * 더 보기(페이지네이션)
@@ -214,12 +275,26 @@ export function Sidebar({ className }: SidebarProps) {
             내 주변 소금빵집
           </div>
 
-          <div className="text-xs font-semibold text-zinc-600">
-            {centerLabel}
+          <div className="flex items-center gap-2">
+            <div className="text-xs font-semibold text-zinc-600">
+              {centerLabel}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleUseMyLocation}
+              aria-label="내 위치 기준으로 정렬"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              📍
+            </button>
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40">
+        <div
+          ref={listScrollRef}
+          className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40"
+        >
           {loading && shops.length === 0 ? (
             <div className="text-sm text-zinc-500">불러오는 중…</div>
           ) : errorMsg ? (
@@ -228,14 +303,22 @@ export function Sidebar({ className }: SidebarProps) {
             <>
               <ShopList
                 shops={shops}
-                onSelectAction={(shop) =>
+                onSelectAction={(shop) => {
                   openShopDetail({
                     id: shop.id,
                     lat: Number(shop.latitude),
                     lng: Number(shop.longitude),
                     name: shop.name,
-                  })
-                }
+                  });
+
+                  setCenter(
+                    {
+                      lat: Number(shop.latitude),
+                      lng: Number(shop.longitude),
+                    },
+                    "shopClick"
+                  );
+                }}
               />
 
               <div className="pt-4">

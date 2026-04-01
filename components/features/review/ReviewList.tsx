@@ -12,7 +12,7 @@ import {
 import { useShopReviews } from "@/lib/queries/useShopReviews";
 import { useShopReviewTags } from "@/lib/queries/useShopReviewTags";
 import { mapReviewTags } from "@/lib/mappers/reviewTagEmoji.mapper";
-import { useCreateReview } from "@/lib/hooks/useCreateReview";
+import { useCreateReview } from "@/lib/queries/useCreateReview";
 
 type Props = {
   shopId: string;
