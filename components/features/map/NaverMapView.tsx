@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getShopLocations, type ShopLocation } from "@/lib/api/shops";
 import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
+import { useMapStore } from "@/lib/store/useMapStroe";
 
 export default function NaverMapView() {
   const mapElementRef = useRef<HTMLDivElement>(null);
@@ -14,6 +15,9 @@ export default function NaverMapView() {
 
   const openShopDetail = useSelectedShopStore((state) => state.openShopDetail);
   const selectedShop = useSelectedShopStore((state) => state.selectedShop);
+
+  const center = useMapStore((s) => s.center);
+  const setCenter = useMapStore((s) => s.setCenter);
 
   const waitForNaver = (): Promise<typeof window.naver> => {
     return new Promise((resolve, reject) => {
@@ -128,6 +132,14 @@ export default function NaverMapView() {
               lng: Number(shop.lng),
               name: shop.name,
             });
+
+            setCenter(
+              {
+                lat: Number(shop.lat),
+                lng: Number(shop.lng),
+              },
+              "shopClick"
+            );
           });
 
           return marker;
@@ -195,15 +207,12 @@ export default function NaverMapView() {
 
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-    if (!selectedShop) return;
     if (!window.naver?.maps) return;
 
-    const latLng = new window.naver.maps.LatLng(
-      selectedShop.lat,
-      selectedShop.lng
-    );
+    const latLng = new window.naver.maps.LatLng(center.lat, center.lng);
+
     mapInstanceRef.current.panTo(latLng);
-  }, [selectedShop]);
+  }, [center]);
 
   return <div ref={mapElementRef} className="h-full w-full" />;
 }

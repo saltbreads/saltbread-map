@@ -1,5 +1,13 @@
 import { create } from "zustand";
 import { DEFAULT_LOCATION, type LatLng } from "@/lib/constants/location";
+
+/**
+ * 지도와 리스트가 공통으로 사용하는 "현재 기준 좌표(center)"를 관리하는 store
+ * - center는 다양한 액션(내 위치, 가게 클릭, 검색 등)에 의해 변경됨
+ * - 실제 위치/선택/검색 상태는 다른 store에서 관리하고,
+ *   여기서는 최종 결과만 저장
+ */
+
 // center가 어디 액션으로 바뀌었는지(디버깅/UX에 도움)
 export type CenterSource =
   | "default"
@@ -24,9 +32,6 @@ type MapState = {
   // - reverseGeocode 성공 시 업데이트
   // - 실패/미수신 시에도 UX 안정 위해 기본값 유지 가능
   centerLabel: string;
-
-  // 현재 선택된 가게 id (모달/하이라이트/스크롤싱크용)
-  selectedShopId: string | null;
 
   // 지도 드래그 중 임시 중심 좌표(선택)
   // - "이 위치에서 검색" UX 만들 때 사용
@@ -56,9 +61,6 @@ type MapState = {
   // 지도 드래그 등으로 임시 center를 저장/해제
   setDraftCenter: (center: LatLng | null) => void;
 
-  // 가게 선택/해제
-  selectShop: (shopId: string | null) => void;
-
   // 기본 위치(동대구역)로 초기화
   resetToDefault: () => void;
 };
@@ -71,7 +73,6 @@ export const useMapStore = create<MapState>((set) => ({
   },
   source: "default",
   centerLabel: DEFAULT_LOCATION.label,
-  selectedShopId: null,
   draftCenter: null,
 
   // ---- actions ----
@@ -95,10 +96,6 @@ export const useMapStore = create<MapState>((set) => ({
     set({ draftCenter: center });
   },
 
-  selectShop: (shopId) => {
-    set({ selectedShopId: shopId });
-  },
-
   resetToDefault: () => {
     set({
       center: {
@@ -107,7 +104,6 @@ export const useMapStore = create<MapState>((set) => ({
       },
       source: "default",
       centerLabel: DEFAULT_LOCATION.label,
-      selectedShopId: null,
       draftCenter: null,
     });
   },

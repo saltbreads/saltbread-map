@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 
+/**
+ * 브라우저 geolocation API를 사용해 현재 위치를 자동으로 가져오는 React 훅
+ * - 컴포넌트 마운트 시 위치 요청이 1회 실행됨
+ * - 위치 좌표, 로딩 상태, 에러 상태를 함께 관리
+ * - UI에서 상태 기반 렌더링에 사용됨
+ * - 수동 트리거(버튼 클릭)에는 적합하지 않음
+ */
+
 export enum LocationErrorType {
   UNSUPPORTED = "UNSUPPORTED",
   PERMISSION_DENIED = "PERMISSION_DENIED",
