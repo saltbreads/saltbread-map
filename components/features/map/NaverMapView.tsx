@@ -141,71 +141,30 @@ export default function NaverMapView() {
           disableClickZoom: false,
           minClusterSize: 1,
           maxZoom: 14,
-          gridSize: 70,
+          gridSize: 100,
           averageCenter: false,
           icons: [
             {
               content: `
                 <div style="
-                  width:40px;
-                  height:40px;
+                  width:48px;
+                  height:48px;
                   border-radius:9999px;
-                  background:#ff8a5b;
-                  color:#fff;
+                  background:#fff;
+                  border:4px solid #93643e; /* 브랜드 컬러 */
                   display:flex;
                   align-items:center;
                   justify-content:center;
                   font-weight:700;
                   font-size:14px;
-                  box-shadow:0 2px 6px rgba(0,0,0,0.2);
+                  color:#cc9666; /* 숫자도 브랜드 컬러 */
+                  box-shadow:0 4px 10px rgba(0,0,0,0.15);
                 ">
                   <span class="cluster-count">0</span>
                 </div>
               `,
-              size: new naver.maps.Size(40, 40),
-              anchor: new naver.maps.Point(20, 20),
-            },
-            {
-              content: `
-                <div style="
-                  width:46px;
-                  height:46px;
-                  border-radius:9999px;
-                  background:#ff6b6b;
-                  color:#fff;
-                  display:flex;
-                  align-items:center;
-                  justify-content:center;
-                  font-weight:700;
-                  font-size:14px;
-                  box-shadow:0 2px 6px rgba(0,0,0,0.2);
-                ">
-                  <span class="cluster-count">0</span>
-                </div>
-              `,
-              size: new naver.maps.Size(46, 46),
-              anchor: new naver.maps.Point(23, 23),
-            },
-            {
-              content: `
-                <div style="
-                  width:52px;
-                  height:52px;
-                  border-radius:9999px;
-                  background:#ffb347;
-                  color:#fff;
-                  display:flex;
-                  align-items:center;
-                  justify-content:center;
-                  font-weight:700;
-                  font-size:15px;
-                  box-shadow:0 2px 6px rgba(0,0,0,0.2);
-                ">
-                  <span class="cluster-count">0</span>
-                </div>
-              `,
-              size: new naver.maps.Size(52, 52),
-              anchor: new naver.maps.Point(26, 26),
+              size: new naver.maps.Size(48, 48),
+              anchor: new naver.maps.Point(24, 24),
             },
           ],
           indexGenerator: [10, 30],
