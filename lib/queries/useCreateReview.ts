@@ -9,6 +9,7 @@ export function useCreateReview(shopId: string) {
       rating: number;
       content?: string;
       imageUrls?: string[];
+      tags?: string[];
     }) => postReview({ shopId, ...payload }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopReviews", shopId] });

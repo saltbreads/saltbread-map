@@ -3,11 +3,15 @@
 import { useMemo, useState } from "react";
 import { CldUploadWidget } from "next-cloudinary";
 import { Modal } from "../../shared/ui/Modal";
+import { ReviewTagSelector } from "./ReviewTagSelector";
+import { REVIEW_TAG_EMOJI } from "@/lib/constants/reviewTags";
+import { postAiTagSuggestions } from "@/lib/api/reviews";
 
 export type CreateReviewPayload = {
   rating: number;
   content?: string;
   imageUrls?: string[];
+  tags?: string[];
 };
 
 type Props = {
@@ -18,11 +22,13 @@ type Props = {
 };
 
 const MAX_IMAGE_COUNT = 10;
+const MAX_TAG_COUNT = 5;
 
 type ReviewFormErrors = {
   rating?: string;
   imageUrls?: string;
   submit?: string;
+  aiTagSuggestion?: string;
 };
 
 type CloudinaryUploadInfo = {
@@ -39,6 +45,8 @@ export function ReviewCreateModal({
   const [content, setContent] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [errors, setErrors] = useState<ReviewFormErrors>({});
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isSuggestingTags, setIsSuggestingTags] = useState(false);
 
   const trimmedContent = useMemo(() => content.trim(), [content]);
 
@@ -46,11 +54,13 @@ export function ReviewCreateModal({
     setRating(5);
     setContent("");
     setImageUrls([]);
+    setSelectedTags([]);
     setErrors({});
+    setIsSuggestingTags(false);
   };
 
   const handleClose = () => {
-    if (isSubmitting) return;
+    if (isSubmitting || isSuggestingTags) return;
     resetForm();
     onCloseAction();
   };
@@ -97,6 +107,67 @@ export function ReviewCreateModal({
     return Object.keys(nextErrors).length === 0;
   };
 
+  const handleAiTagSuggestion = async () => {
+    if (!trimmedContent) {
+      setErrors((prev) => ({
+        ...prev,
+        aiTagSuggestion: "리뷰 내용을 먼저 입력해줘.",
+      }));
+      return;
+    }
+
+    try {
+      setIsSuggestingTags(true);
+      setErrors((prev) => ({
+        ...prev,
+        aiTagSuggestion: undefined,
+      }));
+
+      const result = await postAiTagSuggestions({ content: trimmedContent });
+
+      const suggestedTags = Array.isArray(result.items)
+        ? result.items.filter((item): item is string => Boolean(item))
+        : [];
+
+      if (suggestedTags.length === 0) {
+        setErrors((prev) => ({
+          ...prev,
+          aiTagSuggestion:
+            "추천할 태그를 찾지 못했어. 내용을 조금 더 자세히 적어줘.",
+        }));
+        return;
+      }
+
+      setSelectedTags((prev) => {
+        const merged = [...prev];
+
+        for (const tag of suggestedTags) {
+          if (!Object.prototype.hasOwnProperty.call(REVIEW_TAG_EMOJI, tag)) {
+            continue;
+          }
+
+          if (!merged.includes(tag)) {
+            merged.push(tag);
+          }
+
+          if (merged.length >= MAX_TAG_COUNT) {
+            break;
+          }
+        }
+
+        return merged;
+      });
+    } catch {
+      setErrors((prev) => ({
+        ...prev,
+        aiTagSuggestion:
+          "AI 태그 추천 중 문제가 발생했어. 잠시 후 다시 시도해줘.",
+      }));
+    } finally {
+      setIsSuggestingTags(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validate()) return;
 
@@ -107,6 +178,7 @@ export function ReviewCreateModal({
         rating,
         ...(trimmedContent ? { content: trimmedContent } : {}),
         ...(imageUrls.length > 0 ? { imageUrls } : {}),
+        ...(selectedTags.length > 0 ? { tags: selectedTags } : {}),
       };
 
       await onSubmitAction(payload);
@@ -125,7 +197,7 @@ export function ReviewCreateModal({
       <button
         type="button"
         onClick={handleClose}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isSuggestingTags}
         className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         취소
@@ -133,7 +205,7 @@ export function ReviewCreateModal({
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isSuggestingTags}
         className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? "등록 중..." : "리뷰 등록"}
@@ -147,8 +219,8 @@ export function ReviewCreateModal({
       onCloseAction={handleClose}
       title="리뷰 등록"
       footer={footer}
-      closeOnBackdrop={!isSubmitting}
-      closeOnEsc={!isSubmitting}
+      closeOnBackdrop={!isSubmitting && !isSuggestingTags}
+      closeOnEsc={!isSubmitting && !isSuggestingTags}
       maxWidthClassName="max-w-xl"
     >
       <div className="space-y-5">
@@ -166,7 +238,7 @@ export function ReviewCreateModal({
                   key={value}
                   type="button"
                   onClick={() => setRating(value)}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isSuggestingTags}
                   className={`text-3xl leading-none transition ${
                     active ? "text-yellow-400" : "text-gray-300"
                   } disabled:cursor-not-allowed`}
@@ -185,6 +257,39 @@ export function ReviewCreateModal({
           )}
         </section>
 
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-gray-800">태그 선택</p>
+
+            <button
+              type="button"
+              onClick={handleAiTagSuggestion}
+              disabled={
+                isSubmitting ||
+                isSuggestingTags ||
+                !trimmedContent ||
+                selectedTags.length >= MAX_TAG_COUNT
+              }
+              className="rounded-xl border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSuggestingTags ? "추천 중..." : "AI 태그 추천"}
+            </button>
+          </div>
+
+          <ReviewTagSelector
+            tags={Object.keys(REVIEW_TAG_EMOJI)}
+            selectedTags={selectedTags}
+            emojiMap={REVIEW_TAG_EMOJI}
+            maxSelect={MAX_TAG_COUNT}
+            disabled={isSubmitting || isSuggestingTags}
+            onChangeAction={setSelectedTags}
+          />
+
+          {errors.aiTagSuggestion && (
+            <p className="text-sm text-red-500">{errors.aiTagSuggestion}</p>
+          )}
+        </section>
+
         <section>
           <label
             htmlFor="review-content"
@@ -198,7 +303,7 @@ export function ReviewCreateModal({
             onChange={(e) => setContent(e.target.value)}
             placeholder="리뷰 내용을 입력해줘."
             rows={5}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isSuggestingTags}
             className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-gray-900"
           />
         </section>
@@ -238,7 +343,7 @@ export function ReviewCreateModal({
                     }
                     open?.();
                   }}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isSuggestingTags}
                   className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   사진 업로드
@@ -269,7 +374,7 @@ export function ReviewCreateModal({
                   <button
                     type="button"
                     onClick={() => handleRemoveImageUrl(url)}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isSuggestingTags}
                     className="ml-3 rounded-md px-2 py-1 text-sm text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     삭제
