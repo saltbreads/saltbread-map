@@ -96,9 +96,39 @@ export type CreateReviewRequest = {
   rating: number;
   content?: string;
   imageUrls?: string[];
+  tags?: string[];
 };
 
 export async function postReview({ shopId, ...body }: CreateReviewRequest) {
-  const response = await http.post(`/shops/${shopId}/reviews`, body);
-  return response.data;
+  const res = await http.post<ApiEnvelope<ShopReviewDto>>(
+    `/shops/${shopId}/reviews`,
+    body
+  );
+
+  return unwrap(res.data, res.status);
+}
+
+export type AiTagSuggestionRequest = {
+  content: string;
+};
+
+export type AiTagSuggestionResponse = {
+  items: string[];
+};
+
+export async function postAiTagSuggestions(
+  body: AiTagSuggestionRequest
+): Promise<AiTagSuggestionResponse> {
+  const res = await http.post<ApiEnvelope<AiTagSuggestionResponse>>(
+    "/reviews/ai-tag-suggestions",
+    body
+  );
+
+  const data = unwrap(res.data, res.status);
+
+  if (!data || !Array.isArray(data.items)) {
+    throw new Error("Invalid response from /reviews/ai-tag-suggestions");
+  }
+
+  return data;
 }
