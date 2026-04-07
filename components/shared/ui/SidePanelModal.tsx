@@ -67,9 +67,12 @@ export function SidePanelModal({
     return mapShopHomeToSectionProps(shopHome);
   }, [shopHome]);
 
+  // 가게 변경 시 상세 패널 탭이 home으로 초기화
   React.useEffect(() => {
-    if (open) setTab(defaultTab);
-  }, [open, defaultTab]);
+    if (open) {
+      setTab("home");
+    }
+  }, [open, shopId]);
 
   const detail = React.useMemo(() => getShopDetailMock(shopId), [shopId]);
 
