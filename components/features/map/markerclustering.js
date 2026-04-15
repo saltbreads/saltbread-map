@@ -526,6 +526,14 @@ Cluster.prototype = {
   },
 
   /**
+   * 현재의 클러스터 멤버 마커 객체를 반환합니다.
+   * @return {naver.maps.Marker[]} 클러스터를 구성하는 마커 객체 집합
+   */
+  getMarkers: function () {
+    return this._clusterMember;
+  },
+
+  /**
    * 전달된 위/경도가 클러스터 경계 영역 내에 있는지 여부를 반환합니다.
    * @param {naver.maps.LatLng} latlng 위/경도
    * @return {boolean} 클러스터 경계 영역 내의 위치 여부
@@ -555,10 +563,20 @@ Cluster.prototype = {
    * 클러스터 마커 클릭 시 줌 동작을 수행하지 않도록 합니다.
    */
   disableClickZoom: function () {
-    if (!this._relation) return;
+    var _this = this;
 
-    naver.maps.Event.removeListener(this._relation);
-    this._relation = null;
+    if (this._relation) {
+      naver.maps.Event.removeListener(this._relation);
+      this._relation = null;
+    }
+
+    this._relation = naver.maps.Event.addListener(
+      this._clusterMarker,
+      "click",
+      function () {
+        naver.maps.Event.trigger(_this._markerClusterer, "clusterclick", _this);
+      }
+    );
   },
 
   /**
@@ -584,6 +602,8 @@ Cluster.prototype = {
 
       if (!this._markerClusterer.getDisableClickZoom()) {
         this.enableClickZoom();
+      } else {
+        this.disableClickZoom();
       }
     }
 
