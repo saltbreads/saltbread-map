@@ -20,6 +20,7 @@ import { DEFAULT_LOCATION } from "@/lib/constants/location";
 import { useAuthStore } from "@/lib/store/auth.store";
 import { postAuthLogout } from "@/lib/api/auth";
 import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
+import { useSidebarStore } from "@/lib/store/useSidebarStore";
 
 import { getMyLocation } from "@/lib/utils/geolocation";
 
@@ -56,6 +57,15 @@ export function Sidebar({ className }: SidebarProps) {
   const isSidePanelOpen = useSelectedShopStore((s) => s.isSidePanelOpen);
   const openShopDetail = useSelectedShopStore((s) => s.openShopDetail);
   const closeShopDetail = useSelectedShopStore((s) => s.closeShopDetail);
+
+  /**
+   * 사이드바 열림/닫힘 상태(store)
+   * - 사이드바를 DOM에서 제거하지 않고 너비만 줄여서
+   *   레이아웃 점프를 줄이고 지도 영역이 자연스럽게 늘어나도록 처리
+   */
+  const isSidebarOpen = useSidebarStore((s) => s.isOpen);
+  const openSidebar = useSidebarStore((s) => s.openSidebar);
+  const closeSidebar = useSidebarStore((s) => s.closeSidebar);
 
   /**
    * 검색 상태(store)
@@ -210,6 +220,18 @@ export function Sidebar({ className }: SidebarProps) {
   }, [shops, debouncedSearch, offset, setCenter]);
 
   /**
+   * 가게 상세 패널이 열리면 사이드바도 함께 연다
+   * - 리스트 문맥 없이 상세 패널만 단독으로 뜨는 어색한 상태를 방지
+   * - 상세 패널이 닫힐 때는 사이드바 상태를 유지
+   *   (사용자가 열어둔/닫아둔 흐름을 닫는 시점에 강제로 바꾸지 않음)
+   */
+  React.useEffect(() => {
+    if (isSidePanelOpen && !isSidebarOpen) {
+      openSidebar();
+    }
+  }, [isSidePanelOpen, isSidebarOpen, openSidebar]);
+
+  /**
    * 더 보기(페이지네이션)
    * - store에 setOffset이 없으면 작동 못하니, 없을 때는 아무것도 안 함
    */
@@ -235,106 +257,133 @@ export function Sidebar({ className }: SidebarProps) {
 
   return (
     <>
+      {!isSidebarOpen && (
+        <button
+          type="button"
+          onClick={openSidebar}
+          aria-label="사이드바 열기"
+          className="fixed left-4 top-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-lg shadow-md transition hover:bg-zinc-50"
+        >
+          ☰
+        </button>
+      )}
+
       <aside
         className={cn(
-          "h-dvh w-90 shrink-0 bg-white border-r",
-          "flex flex-col",
+          "h-dvh shrink-0 border-r bg-white flex flex-col overflow-hidden transition-[width] duration-300",
+          isSidebarOpen ? "w-90" : "w-0 border-r-0",
           className
         )}
+        aria-hidden={!isSidebarOpen}
       >
-        <div className="h-14 px-4 flex items-center justify-between border-b">
-          <Link href="/" className="inline-flex items-center">
-            <Logo size="md" />
-          </Link>
+        {isSidebarOpen && (
+          <>
+            <div className="h-14 px-4 flex items-center justify-between border-b">
+              <Link href="/" className="inline-flex items-center">
+                <Logo size="md" />
+              </Link>
 
-          {isAuthenticated ? (
-            <Button variant="secondary" size="sm" onClick={handleLogout}>
-              로그아웃
-            </Button>
-          ) : (
-            <Button variant="primary" size="sm" href="/login">
-              로그인
-            </Button>
-          )}
-        </div>
+              <div className="flex items-center gap-2">
+                {isAuthenticated ? (
+                  <Button variant="secondary" size="sm" onClick={handleLogout}>
+                    로그아웃
+                  </Button>
+                ) : (
+                  <Button variant="primary" size="sm" href="/login">
+                    로그인
+                  </Button>
+                )}
 
-        <div className="px-4 py-3">
-          <SearchController
-            value={search}
-            onValueChangeAction={(v) => {
-              setSearch(v);
-              resetPaging();
-            }}
-            placeholder="빵집 이름이나 지역을 검색해보세요"
-            className="w-full"
-          />
-        </div>
-
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="text-sm font-bold text-zinc-900">
-            내 주변 소금빵집
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="text-xs font-semibold text-zinc-600">
-              {centerLabel}
+                <button
+                  type="button"
+                  onClick={closeSidebar}
+                  aria-label="사이드바 닫기"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm shadow-sm transition hover:bg-zinc-50"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleUseMyLocation}
-              aria-label="내 위치 기준으로 정렬"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              📍
-            </button>
-          </div>
-        </div>
-
-        <div
-          ref={listScrollRef}
-          className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40"
-        >
-          {loading && shops.length === 0 ? (
-            <div className="text-sm text-zinc-500">불러오는 중…</div>
-          ) : errorMsg ? (
-            <div className="text-sm text-red-600">{errorMsg}</div>
-          ) : (
-            <>
-              <ShopList
-                shops={shops}
-                onSelectAction={(shop) => {
-                  openShopDetail({
-                    id: shop.id,
-                    lat: Number(shop.latitude),
-                    lng: Number(shop.longitude),
-                    name: shop.name,
-                  });
-
-                  setCenter(
-                    {
-                      lat: Number(shop.latitude),
-                      lng: Number(shop.longitude),
-                    },
-                    "shopClick"
-                  );
+            <div className="px-4 py-3">
+              <SearchController
+                value={search}
+                onValueChangeAction={(v) => {
+                  setSearch(v);
+                  resetPaging();
                 }}
+                placeholder="빵집 이름이나 지역을 검색해보세요"
+                className="w-full"
               />
+            </div>
 
-              <div className="pt-4">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full"
-                  onClick={onLoadMore}
-                  disabled={loading || typeof setOffset !== "function"}
-                >
-                  {loading ? "불러오는 중…" : "더 보기"}
-                </Button>
+            <div className="px-4 py-3 flex items-center justify-between">
+              <div className="text-sm font-bold text-zinc-900">
+                내 주변 소금빵집
               </div>
-            </>
-          )}
-        </div>
+
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-semibold text-zinc-600">
+                  {centerLabel}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleUseMyLocation}
+                  aria-label="내 위치 기준으로 정렬"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  📍
+                </button>
+              </div>
+            </div>
+
+            <div
+              ref={listScrollRef}
+              className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pt-3 bg-zinc-50/40"
+            >
+              {loading && shops.length === 0 ? (
+                <div className="text-sm text-zinc-500">불러오는 중…</div>
+              ) : errorMsg ? (
+                <div className="text-sm text-red-600">{errorMsg}</div>
+              ) : (
+                <>
+                  <ShopList
+                    shops={shops}
+                    onSelectAction={(shop) => {
+                      openShopDetail({
+                        id: shop.id,
+                        lat: Number(shop.latitude),
+                        lng: Number(shop.longitude),
+                        name: shop.name,
+                      });
+
+                      setCenter(
+                        {
+                          lat: Number(shop.latitude),
+                          lng: Number(shop.longitude),
+                        },
+                        "shopClick"
+                      );
+                    }}
+                  />
+
+                  <div className="pt-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full"
+                      onClick={onLoadMore}
+                      disabled={loading || typeof setOffset !== "function"}
+                    >
+                      {loading ? "불러오는 중…" : "더 보기"}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </aside>
 
       <SidePanelModal

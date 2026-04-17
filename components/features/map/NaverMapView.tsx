@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getShopLocations, type ShopLocation } from "@/lib/api/shops";
 import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
 import { useMapStore } from "@/lib/store/useMapStroe";
 import { useClusterShopStore } from "@/lib/store/useClusterShopStore"; // ✅ 클러스터 리스트 store 추가
 import { ClusterShopNameList } from "@/components/features/shop/ClusterShopNameList"; // ✅ 지도 위 이름 리스트 오버레이 컴포넌트 추가
+import { useSidebarStore } from "@/lib/store/useSidebarStore";
 
 type MarkerWithShopData = naver.maps.Marker & {
   __shopData?: {
@@ -37,18 +38,19 @@ export default function NaverMapView() {
   const mapInstanceRef = useRef<naver.maps.Map | null>(null);
   const markersRef = useRef<naver.maps.Marker[]>([]);
   const clusterRef = useRef<unknown>(null);
+  const resizeTimeoutRef = useRef<number | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
 
-  // ✅ 클릭한 클러스터 중심 좌표를 저장해두고, 지도 이동/줌 시 필요한 흐름에 사용
+  // 클릭한 클러스터 중심 좌표를 저장해두고, 지도 이동/줌 시 필요한 흐름에 사용
   const clusterCenterRef = useRef<naver.maps.LatLng | null>(null);
 
-  // ✅ 상세 모달이 열려 있을 때, 클러스터 클릭 후 "살짝 오른쪽으로 민 센터 좌표"를 저장
+  // 상세 모달이 열려 있을 때, 클러스터 클릭 후 "살짝 오른쪽으로 민 센터 좌표"를 저장
   const shiftedCenterRef = useRef<naver.maps.LatLng | null>(null);
 
-  // ✅ 클러스터 클릭 직후 map click 이벤트가 연달아 들어와 오버레이가 닫히는 현상을 막기 위한 플래그
+  // 클러스터 클릭 직후 map click 이벤트가 연달아 들어와 오버레이가 닫히는 현상을 막기 위한 플래그
   const ignoreNextMapClickRef = useRef(false);
 
-  // ✅ 지도 위 이름 리스트의 실제 픽셀 위치
+  // 지도 위 이름 리스트의 실제 픽셀 위치
   const [overlayPosition, setOverlayPosition] = useState<OverlayPosition>({
     left: 0,
     top: 0,
@@ -58,10 +60,12 @@ export default function NaverMapView() {
   const selectedShop = useSelectedShopStore((state) => state.selectedShop);
   const isSidePanelOpen = useSelectedShopStore(
     (state) => state.isSidePanelOpen
-  ); // ✅ 상세 모달 열림 여부에 따라 지도 중심 이동/오버레이 배치 전략 분기
+  ); // 상세 모달 열림 여부에 따라 지도 중심 이동/오버레이 배치 전략 분기
 
   const center = useMapStore((s) => s.center);
   const setCenter = useMapStore((s) => s.setCenter);
+
+  const isSidebarOpen = useSidebarStore((s) => s.isOpen);
 
   const openClusterList = useClusterShopStore((s) => s.openClusterList); // ✅ 클러스터 리스트 열기 함수
   const clusterShops = useClusterShopStore((s) => s.clusterShops); // ✅ 지도 위에 띄울 클러스터 가게 목록
@@ -88,44 +92,47 @@ export default function NaverMapView() {
     });
   };
 
-  // ✅ 특정 좌표를 화면 픽셀 기준으로 좌우/상하 오프셋한 새로운 지도 좌표로 변환
-  //    - 상세 모달이 열렸을 때 클러스터 중심을 "살짝 오른쪽"으로 밀어 배치하기 위해 사용
-  const getShiftedLatLng = (
-    baseLatLng: naver.maps.LatLng,
-    offsetX: number,
-    offsetY: number
-  ): naver.maps.LatLng => {
-    const map = mapInstanceRef.current;
+  // 특정 좌표를 화면 픽셀 기준으로 좌우/상하 오프셋한 새로운 지도 좌표로 변환
+  //   - 상세 모달이 열렸을 때 클러스터 중심을 "살짝 오른쪽"으로 밀어 배치하기 위해 사용
+  const getShiftedLatLng = useCallback(
+    (
+      baseLatLng: naver.maps.LatLng,
+      offsetX: number,
+      offsetY: number
+    ): naver.maps.LatLng => {
+      const map = mapInstanceRef.current;
 
-    if (!map || !window.naver?.maps) {
-      return baseLatLng;
-    }
+      if (!map || !window.naver?.maps) {
+        return baseLatLng;
+      }
 
-    const projection = map.getProjection();
-    if (!projection) {
-      return baseLatLng;
-    }
+      const projection = map.getProjection();
+      if (!projection) {
+        return baseLatLng;
+      }
 
-    const baseOffset = projection.fromCoordToOffset(baseLatLng);
+      const baseOffset = projection.fromCoordToOffset(baseLatLng);
 
-    const shiftedCoord = projection.fromOffsetToCoord(
-      new window.naver.maps.Point(
-        baseOffset.x + offsetX,
-        baseOffset.y + offsetY
-      )
-    );
+      const shiftedCoord = projection.fromOffsetToCoord(
+        new window.naver.maps.Point(
+          baseOffset.x + offsetX,
+          baseOffset.y + offsetY
+        )
+      );
 
-    // ✅ fromOffsetToCoord 결과는 TS 상 Coord 로 잡히므로,
-    //    최종적으로 LatLng 객체를 명시적으로 다시 만들어 반환
-    return new window.naver.maps.LatLng(
-      Number(shiftedCoord.y),
-      Number(shiftedCoord.x)
-    );
-  };
+      // fromOffsetToCoord 결과는 TS 상 Coord 로 잡히므로,
+      // 최종적으로 LatLng 객체를 명시적으로 다시 만들어 반환
+      return new window.naver.maps.LatLng(
+        Number(shiftedCoord.y),
+        Number(shiftedCoord.x)
+      );
+    },
+    []
+  );
 
-  // ✅ 상세 모달이 열려 있을 때:
-  //    지도 좌표와 무관하게, 화면 안의 거의 고정된 위치에 이름 리스트를 배치
-  const getSidePanelOpenOverlayPosition = () => {
+  // 상세 모달이 열려 있을 때:
+  // 지도 좌표와 무관하게, 화면 안의 거의 고정된 위치에 이름 리스트를 배치
+  const getSidePanelOpenOverlayPosition = useCallback(() => {
     const mapElement = mapElementRef.current;
 
     if (!mapElement) {
@@ -136,7 +143,7 @@ export default function NaverMapView() {
     const overlayHeight = 180; // 현재 리스트 UI 기준 대략적인 높이
     const margin = 12;
 
-    // ✅ 기존에 잘 맞았던 위치 유지
+    // 기존에 잘 맞았던 위치 유지
     const anchorX = mapElement.clientWidth * 0.56;
     const anchorY = mapElement.clientHeight * 0.5;
 
@@ -154,11 +161,11 @@ export default function NaverMapView() {
     );
 
     return { left, top };
-  };
+  }, []);
 
-  // ✅ 상세 모달이 닫혀 있을 때:
-  //    클러스터 위치를 따라다니지 않고, 화면 기준 고정 위치에 이름 리스트를 배치
-  const getSidePanelClosedOverlayPosition = () => {
+  // 상세 모달이 닫혀 있을 때:
+  // 클러스터 위치를 따라다니지 않고, 화면 기준 고정 위치에 이름 리스트를 배치
+  const getSidePanelClosedOverlayPosition = useCallback(() => {
     const mapElement = mapElementRef.current;
 
     if (!mapElement) {
@@ -169,7 +176,7 @@ export default function NaverMapView() {
     const overlayHeight = 180; // 현재 리스트 UI 기준 대략적인 높이
     const margin = 12;
 
-    // ✅ 닫힘 상태에서는 지도 중앙 기준 + 살짝 오른쪽에 고정
+    // 닫힘 상태에서는 지도 중앙 기준 + 살짝 오른쪽에 고정
     const centerX = mapElement.clientWidth * 0.5;
     const centerY = mapElement.clientHeight * 0.5;
     const anchorX = centerX + 120;
@@ -189,16 +196,20 @@ export default function NaverMapView() {
     );
 
     return { left, top };
-  };
+  }, []);
 
   // ✅ 현재 상태에 맞게 오버레이 위치를 계산하는 통합 함수
-  const getOverlayPosition = (): OverlayPosition => {
+  const getOverlayPosition = useCallback((): OverlayPosition => {
     if (isSidePanelOpen) {
       return getSidePanelOpenOverlayPosition();
     }
 
     return getSidePanelClosedOverlayPosition();
-  };
+  }, [
+    isSidePanelOpen,
+    getSidePanelOpenOverlayPosition,
+    getSidePanelClosedOverlayPosition,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,6 +240,52 @@ export default function NaverMapView() {
       cancelled = true;
     };
   }, []);
+
+  /**
+   * 사이드바 열림/닫힘으로 지도 컨테이너 크기가 바뀔 때
+   * 강제 재마운트 대신 브라우저 resize 이벤트를 발생시켜
+   * 지도 라이브러리가 현재 컨테이너 크기에 맞춰 다시 계산하도록 유도
+   * - transition-[width] duration-300 과 맞춰 약간 기다렸다가 한 번 더 호출
+   * - 현재 center 기준으로 다시 panTo 해서 보이는 위치가 어색하게 밀리지 않도록 보정
+   */
+  useEffect(() => {
+    if (!isMapReady) return;
+    if (!mapInstanceRef.current) return;
+    if (!window.naver?.maps) return;
+
+    const triggerMapResize = () => {
+      window.dispatchEvent(new Event("resize"));
+
+      const map = mapInstanceRef.current;
+      if (!map) return;
+
+      const latLng = new window.naver.maps.LatLng(center.lat, center.lng);
+      map.panTo(latLng);
+
+      if (useClusterShopStore.getState().isClusterListOpen) {
+        setOverlayPosition(getOverlayPosition());
+      }
+    };
+
+    // width transition 시작 직후 한 번
+    triggerMapResize();
+
+    // width transition 종료 시점에 한 번 더
+    if (resizeTimeoutRef.current) {
+      window.clearTimeout(resizeTimeoutRef.current);
+    }
+
+    resizeTimeoutRef.current = window.setTimeout(() => {
+      triggerMapResize();
+    }, 320);
+
+    return () => {
+      if (resizeTimeoutRef.current) {
+        window.clearTimeout(resizeTimeoutRef.current);
+        resizeTimeoutRef.current = null;
+      }
+    };
+  }, [isSidebarOpen, isMapReady, center.lat, center.lng, getOverlayPosition]);
 
   useEffect(() => {
     let cancelled = false;
@@ -299,7 +356,7 @@ export default function NaverMapView() {
           naver.maps.Event.addListener(marker, "click", () => {
             if (selectedShop?.id === shop.id) return;
 
-            // ✅ 일반 마커를 직접 클릭했을 때는 클러스터 이름 리스트를 닫음
+            // 일반 마커를 직접 클릭했을 때는 클러스터 이름 리스트를 닫음
             clearClusterList();
             clusterCenterRef.current = null;
             shiftedCenterRef.current = null;
@@ -375,7 +432,7 @@ export default function NaverMapView() {
 
         clusterRef.current = clusterInstance;
 
-        // ✅ 클러스터 클릭 이벤트 추가
+        // 클러스터 클릭 이벤트 추가
         naver.maps.Event.addListener(
           clusterInstance,
           "clusterclick",
@@ -389,38 +446,38 @@ export default function NaverMapView() {
                   Boolean(shop)
               );
 
-            // ✅ 클러스터 클릭 직후 발생하는 map click은 한 번 무시해서 깜박임 방지
+            // 클러스터 클릭 직후 발생하는 map click은 한 번 무시해서 깜박임 방지
             ignoreNextMapClickRef.current = true;
 
-            // ✅ 클릭한 클러스터 중심 좌표를 저장
+            // 클릭한 클러스터 중심 좌표를 저장
             const clusterCenter = cluster.getCenter();
             clusterCenterRef.current = clusterCenter;
 
             if (isSidePanelOpen) {
-              // ✅ 상세 모달이 열려 있을 때는
-              //    클러스터를 화면 중심보다 살짝 왼쪽에 보이게 만들기 위해
-              //    지도 중심 좌표를 "클러스터보다 오른쪽"으로 이동
+              // 상세 모달이 열려 있을 때는
+              // 클러스터를 화면 중심보다 살짝 왼쪽에 보이게 만들기 위해
+              // 지도 중심 좌표를 "클러스터보다 오른쪽"으로 이동
               const shiftedCenter = getShiftedLatLng(clusterCenter, 140, 0);
               shiftedCenterRef.current = shiftedCenter;
 
               map.panTo(shiftedCenter);
             } else {
-              // ✅ 상세 모달이 닫혀 있을 때는 기존처럼 클러스터를 중앙 쪽으로 이동
+              // 상세 모달이 닫혀 있을 때는 기존처럼 클러스터를 중앙 쪽으로 이동
               shiftedCenterRef.current = null;
 
               map.panTo(clusterCenter);
             }
 
-            // ✅ 오버레이는 이제 상태별 고정 위치를 사용
+            // 오버레이는 이제 상태별 고정 위치를 사용
             const nextPosition = getOverlayPosition();
             setOverlayPosition(nextPosition);
 
-            // ✅ 클러스터 리스트 store에 저장 → 지도 위 이름 리스트 오버레이 렌더링
+            // 클러스터 리스트 store에 저장 → 지도 위 이름 리스트 오버레이 렌더링
             openClusterList(shops);
           }
         );
 
-        // ✅ 지도 이동/줌 이후에도 오버레이 위치를 다시 계산
+        // 지도 이동/줌 이후에도 오버레이 위치를 다시 계산
         naver.maps.Event.addListener(map, "idle", () => {
           if (!useClusterShopStore.getState().isClusterListOpen) return;
 
@@ -428,9 +485,9 @@ export default function NaverMapView() {
           setOverlayPosition(nextPosition);
         });
 
-        // ✅ 지도 빈 영역을 클릭하면 이름 리스트 닫기
+        // 지도 빈 영역을 클릭하면 이름 리스트 닫기
         naver.maps.Event.addListener(map, "click", () => {
-          // ✅ 클러스터 클릭 직후 이어서 들어오는 map click 한 번은 무시
+          // 클러스터 클릭 직후 이어서 들어오는 map click 한 번은 무시
           if (ignoreNextMapClickRef.current) {
             ignoreNextMapClickRef.current = false;
             return;
@@ -460,6 +517,8 @@ export default function NaverMapView() {
     openClusterList,
     clearClusterList,
     isSidePanelOpen,
+    getShiftedLatLng,
+    getOverlayPosition,
   ]);
 
   useEffect(() => {
@@ -472,12 +531,12 @@ export default function NaverMapView() {
   }, [center]);
 
   return (
-    // ✅ 지도 위 오버레이를 띄우기 위해 바깥 래퍼를 relative로 감쌈
+    // 지도 위 오버레이를 띄우기 위해 바깥 래퍼를 relative로 감쌈
     <div className="relative h-full w-full overflow-hidden">
       <div ref={mapElementRef} className="h-full w-full" />
 
       {isClusterListOpen && (
-        // ✅ 클러스터 클릭 시 지도 위에 가게 이름 리스트를 오버레이로 표시
+        // 클러스터 클릭 시 지도 위에 가게 이름 리스트를 오버레이로 표시
         <div
           className="absolute z-20"
           style={{
@@ -495,7 +554,7 @@ export default function NaverMapView() {
               ignoreNextMapClickRef.current = false;
             }}
             onSelectAction={(shop) => {
-              // ✅ 이름 리스트에서 가게를 클릭하면 기존 상세 패널 흐름 재사용
+              // 이름 리스트에서 가게를 클릭하면 기존 상세 패널 흐름 재사용
               clearClusterList();
               clusterCenterRef.current = null;
               shiftedCenterRef.current = null;
