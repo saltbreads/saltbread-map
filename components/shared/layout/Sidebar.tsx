@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { Logo } from "@/components/shared/brand/Logo";
 import { Button } from "@/components/shared/ui/Button";
-import { SidePanelModal } from "@/components/shared/ui/SidePanelModal";
+import { ResponsiveShopDetailPanel } from "./ResponsiveShopDetailPanel";
 import { cn } from "@/lib/utils/cn";
 
 import { SearchController } from "../../features/search/SearchController";
@@ -386,13 +386,13 @@ export function Sidebar({ className }: SidebarProps) {
         )}
       </aside>
 
-      <SidePanelModal
+      <ResponsiveShopDetailPanel
         open={isSidePanelOpen}
         onCloseAction={closeShopDetail}
         shopId={selectedShopId?.id ?? "가게 아이디"}
       >
         {/* 필요하면 여기 상세 패널 컴포넌트 넣기 */}
-      </SidePanelModal>
+      </ResponsiveShopDetailPanel>
     </>
   );
 }

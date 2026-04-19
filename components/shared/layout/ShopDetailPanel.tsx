@@ -14,7 +14,7 @@ import { ShopDetailTabs } from "../../features/shop/ShopDetailTabs";
 import { ShopHomeSection } from "../../features/shop/ShopHomeSection";
 import { ShopPhotoGrid } from "../../features/shop/ShopPhotoGrid";
 
-type SidePanelModalProps = {
+type ShopDetailPanelProps = {
   open: boolean;
   onBackAction?: () => void;
   onCloseAction: () => void;
@@ -27,7 +27,7 @@ type SidePanelModalProps = {
   defaultTab?: ShopDetailTabKey;
 };
 
-export function SidePanelModal({
+export function ShopDetailPanel({
   open,
   onBackAction,
   onCloseAction,
@@ -38,7 +38,7 @@ export function SidePanelModal({
   insetYPx = 16,
   panelWidthPx = 420,
   defaultTab = "home",
-}: SidePanelModalProps) {
+}: ShopDetailPanelProps) {
   const [tab, setTab] = React.useState<ShopDetailTabKey>(defaultTab);
 
   const {
