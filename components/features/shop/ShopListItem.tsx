@@ -55,8 +55,13 @@ export function ShopListItem({
     averagePrice == null ? null : Math.round(averagePrice).toLocaleString();
 
   return (
-    <div className={cn("overflow-hidden rounded-xl bg-white", className)}>
-      <div className="relative aspect-video w-full bg-zinc-100">
+    <div
+      className={cn(
+        "overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5",
+        className
+      )}
+    >
+      <div className="relative aspect-[16/9] w-full bg-zinc-100">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -68,22 +73,31 @@ export function ShopListItem({
         ) : null}
       </div>
 
-      <div className="p-3">
-        <div className="flex items-start gap-2">
+      <div className="p-3 sm:p-3.5">
+        <div className="flex items-start gap-2 sm:gap-2.5">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="truncate text-[16px] font-semibold text-zinc-900">
-                {name}
-              </p>
-              <RatingBadge rating={rating} reviewCount={reviewCount} />
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[15px] font-semibold text-zinc-900 sm:text-[16px]">
+                  {name}
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <RatingBadge rating={rating} reviewCount={reviewCount} />
+              </div>
             </div>
           </div>
 
-          <LikeButton isLiked={isLiked} onToggleAction={onToggleLikeAction} />
+          <div className="shrink-0">
+            <LikeButton isLiked={isLiked} onToggleAction={onToggleLikeAction} />
+          </div>
         </div>
 
         {distanceLabel ? (
-          <p className="mt-1 text-[12px] text-zinc-500">📍 {distanceLabel}</p>
+          <p className="mt-1.5 text-[12px] text-zinc-500 sm:mt-1">
+            📍 {distanceLabel}
+          </p>
         ) : null}
 
         {averagePrice ? (
@@ -93,7 +107,7 @@ export function ShopListItem({
         ) : null}
 
         {topInfoItems.length > 0 ? (
-          <div className="mt-2">
+          <div className="mt-2.5 sm:mt-2">
             <TopInfoRows
               items={topInfoItems}
               limit={3}
