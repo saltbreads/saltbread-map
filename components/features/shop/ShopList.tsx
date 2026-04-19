@@ -127,7 +127,7 @@ export function ShopList({
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5 sm:gap-3">
       {shopsWithDistance.map((shop) => (
         <div
           key={shop.id}
@@ -150,7 +150,7 @@ export function ShopList({
             handleSelect(shop);
           }}
           onKeyDown={(e) => handleKeyDown(e, shop)}
-          className="text-left rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+          className="rounded-xl text-left focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
         >
           <ShopListItem
             imageUrl={shop.heroImageUrl ?? undefined}

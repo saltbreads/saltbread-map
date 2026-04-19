@@ -41,10 +41,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
-  icon: "h-10 w-10",
+  sm: "h-8 px-3 text-xs sm:h-9 sm:text-sm",
+  md: "h-9 px-4 text-sm sm:h-10",
+  lg: "h-10 px-4 text-sm sm:h-11 sm:px-5 sm:text-base",
+  icon: "h-9 w-9 sm:h-10 sm:w-10",
 };
 
 function Spinner({ className }: { className?: string }) {
