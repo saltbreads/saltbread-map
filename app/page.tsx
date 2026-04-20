@@ -1,4 +1,4 @@
-import MainPage from "@/components/pages/MapPage";
+import MainPage from "@/components/pages/MapPage/MapPage";
 
 export default function Home() {
   return <MainPage />;

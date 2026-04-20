@@ -5,8 +5,9 @@ import { getShopLocations, type ShopLocation } from "@/lib/api/shops";
 import { useSelectedShopStore } from "@/lib/store/useSelectedShopStore";
 import { useMapStore } from "@/lib/store/useMapStroe";
 import { useClusterShopStore } from "@/lib/store/useClusterShopStore"; // ✅ 클러스터 리스트 store 추가
-import { ClusterShopNameList } from "@/components/features/shop/ClusterShopNameList"; // ✅ 지도 위 이름 리스트 오버레이 컴포넌트 추가
+import { SearchSuggestionList } from "@/components/features/shop/SearchSuggestionList"; // ✅ 지도 위 이름 리스트 오버레이 컴포넌트 추가
 import { useSidebarStore } from "@/lib/store/useSidebarStore";
+import { useBottomSheetStageStore } from "@/lib/store/useBottomSheetStageStore";
 
 type MarkerWithShopData = naver.maps.Marker & {
   __shopData?: {
@@ -66,6 +67,8 @@ export default function NaverMapView() {
   const setCenter = useMapStore((s) => s.setCenter);
 
   const isSidebarOpen = useSidebarStore((s) => s.isOpen);
+
+  const setStage = useBottomSheetStageStore((s) => s.setStage);
 
   const openClusterList = useClusterShopStore((s) => s.openClusterList); // ✅ 클러스터 리스트 열기 함수
   const clusterShops = useClusterShopStore((s) => s.clusterShops); // ✅ 지도 위에 띄울 클러스터 가게 목록
@@ -362,6 +365,9 @@ export default function NaverMapView() {
             shiftedCenterRef.current = null;
             ignoreNextMapClickRef.current = false;
 
+            // 상세 패널이 열릴 때 바텀시트도 최대 높이로 올림
+            setStage(3);
+
             openShopDetail({
               id: shop.id,
               lat: Number(shop.lat),
@@ -519,6 +525,7 @@ export default function NaverMapView() {
     isSidePanelOpen,
     getShiftedLatLng,
     getOverlayPosition,
+    setStage,
   ]);
 
   useEffect(() => {
@@ -544,8 +551,8 @@ export default function NaverMapView() {
             top: overlayPosition.top,
           }}
         >
-          <ClusterShopNameList
-            shops={clusterShops}
+          <SearchSuggestionList
+            items={clusterShops}
             title="소금빵 가게"
             onCloseAction={() => {
               clearClusterList();
@@ -559,6 +566,9 @@ export default function NaverMapView() {
               clusterCenterRef.current = null;
               shiftedCenterRef.current = null;
               ignoreNextMapClickRef.current = false;
+
+              // 상세 패널이 열릴 때 바텀시트도 최대 높이로 올림
+              setStage(3);
 
               openShopDetail({
                 id: shop.id,

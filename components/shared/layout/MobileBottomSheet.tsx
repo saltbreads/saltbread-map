@@ -7,7 +7,6 @@ import { Sheet, type SheetRef } from "react-modal-sheet";
 import { Logo } from "@/components/shared/brand/Logo";
 import { Button } from "@/components/shared/ui/Button";
 import { ResponsiveShopDetailPanel } from "./ResponsiveShopDetailPanel";
-import { SearchController } from "@/components/features/search/SearchController";
 import { ShopList } from "@/components/features/shop/ShopList";
 
 import { SearchShopItem, getSearchShops } from "@/lib/api/shops";
@@ -55,6 +54,14 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
   }, []);
 
   const sheetRef = React.useRef<SheetRef>(null);
+
+  /**
+   * 검색바를 가리지 않기 위한 상단 여백
+   * - "지도 위 고정 검색바 + 상단 안전 여백" 높이만큼
+   *   바텀시트가 아래에서 시작하도록 제한
+   * - 값은 실제 SearchBar 높이에 맞게 조절
+   */
+  const MOBILE_SEARCHBAR_OFFSET = 88;
 
   // 지도 중심 라벨은 기존 store 그대로 사용
   const centerLabel = useMapStore((s) => s.centerLabel);
@@ -117,6 +124,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
    * API 결과 상태
    */
   const [shops, setShops] = React.useState<SearchShopItem[]>([]);
+  const [hasMore, setHasMore] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const listScrollRef = React.useRef<HTMLDivElement>(null);
@@ -129,10 +137,10 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
   /**
    * react-modal-sheet snap point
    * - 첫 값은 0(완전 닫힘), 마지막 값은 1(완전 열림)이어야 함
-   * - 실제 UX에서는 최소 높이 index=1을 바닥 상태처럼 사용
-   * - 1 / 2 / 3 index를 전역 store의 stage와 매핑해서 사용
+   * - 여기서 "완전 열림"은 viewport 전체가 아니라
+   *   아래에서 설정한 "검색바 아래 영역 전체"를 의미하게 만듦
    */
-  const snapPoints = React.useMemo(() => [0, 0.14, 0.45, 1], []);
+  const snapPoints = React.useMemo(() => [0, 0.14, 0.7, 1], []);
 
   const handleUseMyLocation = async () => {
     try {
@@ -197,7 +205,10 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
 
         if (!alive) return;
 
-        setShops((prev) => (offset === 0 ? data : [...prev, ...data]));
+        setShops((prev) =>
+          offset === 0 ? data.items : [...prev, ...data.items]
+        );
+        setHasMore(data.hasMore);
       } catch {
         if (!alive) return;
         setErrorMsg("가게 목록을 불러오지 못했어");
@@ -263,6 +274,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
    * - store에 setOffset이 없으면 작동 못하니, 없을 때는 아무것도 안 함
    */
   const onLoadMore = () => {
+    if (!hasMore) return;
     if (typeof setOffset !== "function") return;
     setOffset(offset + limit);
   };
@@ -339,11 +351,26 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
             }
           }}
         >
-          <Sheet.Container className="rounded-t-3xl! shadow-2xl!">
+          {/* 
+            검색바를 가리지 않도록
+            시트 전체가 화면 최상단까지 올라가지 못하게 제한
+          */}
+          <Sheet.Container
+            className="rounded-t-3xl! shadow-2xl!"
+            style={{
+              top: `${MOBILE_SEARCHBAR_OFFSET}px`,
+              height: `calc(100dvh - ${MOBILE_SEARCHBAR_OFFSET}px)`,
+            }}
+          >
             <Sheet.Header />
 
             <Sheet.Content disableDrag={false}>
-              <div className="flex h-[88dvh] flex-col overflow-hidden bg-white">
+              <div
+                className="flex flex-col overflow-hidden bg-white"
+                style={{
+                  height: `calc(100dvh - ${MOBILE_SEARCHBAR_OFFSET}px)`,
+                }}
+              >
                 <div className="border-b bg-white">
                   <div className="flex h-14 items-center justify-between px-4">
                     <Link href="/" className="inline-flex items-center">
@@ -365,18 +392,6 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
                         </Button>
                       )}
                     </div>
-                  </div>
-
-                  <div className="px-4 pb-3">
-                    <SearchController
-                      value={search}
-                      onValueChangeAction={(v) => {
-                        setSearch(v);
-                        resetPaging();
-                      }}
-                      placeholder="빵집 이름이나 지역을 검색해보세요"
-                      className="w-full"
-                    />
                   </div>
 
                   <div className="flex items-center justify-between px-4 pb-3">
@@ -431,17 +446,23 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
                         }}
                       />
 
-                      <div className="pt-4 pb-4">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="w-full"
-                          onClick={onLoadMore}
-                          disabled={loading || typeof setOffset !== "function"}
-                        >
-                          {loading ? "불러오는 중…" : "더 보기"}
-                        </Button>
-                      </div>
+                      {hasMore && shops.length > 0 && (
+                        <div className="pt-4 pb-4">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="w-full"
+                            onClick={onLoadMore}
+                            disabled={
+                              loading ||
+                              !hasMore ||
+                              typeof setOffset !== "function"
+                            }
+                          >
+                            {loading ? "불러오는 중…" : "더 보기"}
+                          </Button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -449,7 +470,16 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
             </Sheet.Content>
           </Sheet.Container>
 
-          <Sheet.Backdrop className="bg-black/10!" />
+          {/* 
+            백드롭도 검색바까지 덮지 않도록 top 제한
+            - 검색바는 계속 클릭 가능하게 유지하고 싶을 때 유용
+          */}
+          <Sheet.Backdrop
+            className="bg-transparent!"
+            style={{
+              top: `${MOBILE_SEARCHBAR_OFFSET}px`,
+            }}
+          />
         </Sheet>
       </div>
 
@@ -457,7 +487,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
         open={isSidePanelOpen}
         onCloseAction={closeShopDetail}
         shopId={selectedShop?.id ?? "가게 아이디"}
-      ></ResponsiveShopDetailPanel>
+      />
     </>
   );
 }
