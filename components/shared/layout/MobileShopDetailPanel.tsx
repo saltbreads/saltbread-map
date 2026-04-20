@@ -51,6 +51,13 @@ export function MobileShopDetailPanel({
   const [tab, setTab] = React.useState<ShopDetailTabKey>(defaultTab);
 
   /**
+   * 검색바를 가리지 않기 위한 상단 여백
+   * - 리스트 바텀시트와 동일한 값을 사용해서
+   *   상세 패널도 검색바 아래까지만 올라오도록 제한
+   */
+  const MOBILE_SEARCHBAR_OFFSET = 88;
+
+  /**
    * 바텀시트 높이 단계(store)
    * - 리스트 바텀시트에서 마지막으로 사용하던 높이를 공유받아
    *   상세 패널도 같은 높이 단계로 열릴 수 있게 함
@@ -98,7 +105,7 @@ export function MobileShopDetailPanel({
    * - 실제 UX 단계는 1(최소) / 2(중간) / 3(최대)
    * - 리스트 바텀시트와 동일한 snap 구조를 사용해 높이 단계를 공유
    */
-  const snapPoints = React.useMemo(() => [0, 0.14, 0.45, 1], []);
+  const snapPoints = React.useMemo(() => [0, 0.14, 0.7, 1], []);
 
   // 열릴 때 현재 저장된 높이 단계로 스냅
   React.useEffect(() => {
@@ -134,12 +141,21 @@ export function MobileShopDetailPanel({
           }
         }}
       >
-        <Sheet.Container className="rounded-t-3xl! shadow-2xl!">
+        <Sheet.Container
+          className="rounded-t-3xl! shadow-2xl!"
+          style={{
+            top: `${MOBILE_SEARCHBAR_OFFSET}px`,
+            height: `calc(100dvh - ${MOBILE_SEARCHBAR_OFFSET}px)`,
+          }}
+        >
           <Sheet.Header />
 
           <Sheet.Content disableDrag={false}>
             <div
-              className="flex h-[92dvh] flex-col overflow-hidden bg-white"
+              className="flex flex-col overflow-hidden bg-white"
+              style={{
+                height: `calc(100dvh - ${MOBILE_SEARCHBAR_OFFSET}px)`,
+              }}
               role="dialog"
               aria-modal="true"
               aria-label={`가게 상세 ${detail.name}`}
@@ -252,7 +268,12 @@ export function MobileShopDetailPanel({
           </Sheet.Content>
         </Sheet.Container>
 
-        <Sheet.Backdrop className="bg-black/20!" />
+        <Sheet.Backdrop
+          className="bg-transparent!"
+          style={{
+            top: `${MOBILE_SEARCHBAR_OFFSET}px`,
+          }}
+        />
       </Sheet>
     </div>
   );

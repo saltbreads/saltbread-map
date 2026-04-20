@@ -57,23 +57,35 @@ export type SearchShopItem = {
   isLiked?: boolean;
 };
 
+export type SearchShopsResponse = {
+  items: SearchShopItem[];
+  hasMore: boolean;
+};
+
 export async function getSearchShops(
   params: GetSearchShopsParams
-): Promise<SearchShopItem[]> {
-  const res = await http.get<ApiEnvelope<SearchShopItem[]>>("/shops/search", {
-    params: {
-      lat: params.lat,
-      lng: params.lng,
-      ...(params.radiusKm != null ? { radiusKm: params.radiusKm } : {}),
-      ...(params.limit != null ? { limit: params.limit } : {}),
-      ...(params.offset != null ? { offset: params.offset } : {}),
-      ...(params.search ? { search: params.search } : {}),
-    },
-  });
+): Promise<SearchShopsResponse> {
+  const res = await http.get<ApiEnvelope<SearchShopsResponse>>(
+    "/shops/search",
+    {
+      params: {
+        lat: params.lat,
+        lng: params.lng,
+        ...(params.radiusKm != null ? { radiusKm: params.radiusKm } : {}),
+        ...(params.limit != null ? { limit: params.limit } : {}),
+        ...(params.offset != null ? { offset: params.offset } : {}),
+        ...(params.search ? { search: params.search } : {}),
+      },
+    }
+  );
 
   const data = unwrap(res.data, res.status);
 
-  if (!Array.isArray(data)) {
+  if (
+    !data ||
+    !Array.isArray(data.items) ||
+    typeof data.hasMore !== "boolean"
+  ) {
     throw new Error("Invalid response from /shops/search");
   }
 
