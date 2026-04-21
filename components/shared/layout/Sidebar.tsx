@@ -144,7 +144,7 @@ export function Sidebar({ className }: SidebarProps) {
    * API 결과 상태
    */
   const [shops, setShops] = React.useState<SearchShopItem[]>([]);
-  const [hasMore, setHasMore] = React.useState(true);
+  const [hasNext, setHasNext] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const listScrollRef = React.useRef<HTMLDivElement>(null);
@@ -184,7 +184,7 @@ export function Sidebar({ className }: SidebarProps) {
         setShops((prev) =>
           offset === 0 ? data.items : [...prev, ...data.items]
         );
-        setHasMore(data.hasMore);
+        setHasNext(data.hasNext);
       } catch {
         if (!alive) return;
         setErrorMsg("가게 목록을 불러오지 못했어");
@@ -240,7 +240,7 @@ export function Sidebar({ className }: SidebarProps) {
    * - store에 setOffset이 없으면 작동 못하니, 없을 때는 아무것도 안 함
    */
   const onLoadMore = () => {
-    if (!hasMore) return;
+    if (!hasNext) return;
     if (typeof setOffset !== "function") return;
     setOffset(offset + limit);
   };
@@ -373,7 +373,7 @@ export function Sidebar({ className }: SidebarProps) {
                     }}
                   />
 
-                  {hasMore && shops.length > 0 && (
+                  {hasNext && shops.length > 0 && (
                     <div className="pt-4">
                       <Button
                         variant="secondary"
@@ -381,7 +381,7 @@ export function Sidebar({ className }: SidebarProps) {
                         className="w-full"
                         onClick={onLoadMore}
                         disabled={
-                          loading || !hasMore || typeof setOffset !== "function"
+                          loading || !hasNext || typeof setOffset !== "function"
                         }
                       >
                         {loading ? "불러오는 중…" : "더 보기"}

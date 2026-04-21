@@ -4,9 +4,6 @@ import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { ShopListItem } from "@/components/features/shop/ShopListItem";
-import { distanceKm } from "@/lib/utils/distance";
-import { useLocationStore } from "@/lib/store/useLocationStore";
-import { DEFAULT_LOCATION } from "@/lib/constants/location";
 import { mapLabelsToTopInfoItems } from "@/lib/mappers/reviewTagEmoji.mapper";
 
 import {
@@ -14,8 +11,6 @@ import {
   getShopHome,
   getPhotoHighlights,
 } from "@/lib/api/shops";
-
-type ShopWithDistance = SearchShopItem & { distanceKm: number | null };
 
 type ShopListProps = {
   shops: SearchShopItem[];
@@ -33,44 +28,6 @@ export function ShopList({
    * - 상세 데이터를 미리 받아 캐시에 저장하기 위해 사용
    */
   const queryClient = useQueryClient();
-
-  // 내 위치 (null 가능)
-  const myLoc = useLocationStore((s) => s.myLocation);
-
-  // 내 위치가 없으면 동대구역으로 fallback
-  const baseLoc = React.useMemo(
-    () =>
-      myLoc ?? {
-        lat: DEFAULT_LOCATION.lat,
-        lng: DEFAULT_LOCATION.lng,
-      },
-    [myLoc]
-  );
-
-  /**
-   * 거리 계산 + 가까운 순 정렬
-   */
-  const shopsWithDistance: ShopWithDistance[] = React.useMemo(() => {
-    const withDist = shops.map((shop) => {
-      // baseLoc은 항상 존재 (fallback 포함)
-      const km = distanceKm(
-        { lat: baseLoc.lat, lng: baseLoc.lng },
-        { lat: shop.latitude, lng: shop.longitude }
-      );
-
-      // distanceKm 계산이 실패할 가능성은 거의 없지만 안전 처리
-      const safeKm = Number.isFinite(km) ? km : null;
-
-      return { ...shop, distanceKm: safeKm };
-    });
-
-    // 가까운 순 정렬 (null은 맨 뒤)
-    withDist.sort(
-      (a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity)
-    );
-
-    return withDist;
-  }, [shops, baseLoc.lat, baseLoc.lng]);
 
   /**
    * 가게 상세 prefetch
@@ -128,7 +85,7 @@ export function ShopList({
 
   return (
     <div className="flex flex-col gap-2.5 sm:gap-3">
-      {shopsWithDistance.map((shop) => (
+      {shops.map((shop) => (
         <div
           key={shop.id}
           role="button"
@@ -139,7 +96,7 @@ export function ShopList({
             prefetchShopDetail(shop.id);
           }}
           onPointerEnter={() => {}}
-          //키보드 포커스 접근성 대응
+          // 키보드 포커스 접근성 대응
           onFocus={() => prefetchShopDetail(shop.id)}
           // 모바일 대응
           // - hover가 없기 때문에 touch 시작 시 prefetch
@@ -158,7 +115,7 @@ export function ShopList({
             rating={shop.avgRating ?? 0}
             reviewCount={shop.reviewCount ?? 0}
             isLiked={!!shop.isLiked}
-            distanceKm={shop.distanceKm}
+            distanceMeters={shop.distanceMeters}
             onToggleLikeAction={(next) => onToggleLikeAction?.(shop.id, next)}
             averagePrice={shop.avgPrice ?? undefined}
             topInfoItems={mapLabelsToTopInfoItems(shop.bestLabels)}
