@@ -124,7 +124,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
    * API 결과 상태
    */
   const [shops, setShops] = React.useState<SearchShopItem[]>([]);
-  const [hasMore, setHasMore] = React.useState(true);
+  const [hasNext, setHasNext] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const listScrollRef = React.useRef<HTMLDivElement>(null);
@@ -208,7 +208,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
         setShops((prev) =>
           offset === 0 ? data.items : [...prev, ...data.items]
         );
-        setHasMore(data.hasMore);
+        setHasNext(data.hasNext);
       } catch {
         if (!alive) return;
         setErrorMsg("가게 목록을 불러오지 못했어");
@@ -274,7 +274,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
    * - store에 setOffset이 없으면 작동 못하니, 없을 때는 아무것도 안 함
    */
   const onLoadMore = () => {
-    if (!hasMore) return;
+    if (!hasNext) return;
     if (typeof setOffset !== "function") return;
     setOffset(offset + limit);
   };
@@ -446,7 +446,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
                         }}
                       />
 
-                      {hasMore && shops.length > 0 && (
+                      {hasNext && shops.length > 0 && (
                         <div className="pt-4 pb-4">
                           <Button
                             variant="secondary"
@@ -455,7 +455,7 @@ export function MobileBottomSheet({ className }: MobileBottomSheetProps) {
                             onClick={onLoadMore}
                             disabled={
                               loading ||
-                              !hasMore ||
+                              !hasNext ||
                               typeof setOffset !== "function"
                             }
                           >

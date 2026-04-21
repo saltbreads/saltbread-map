@@ -48,8 +48,10 @@ export type SearchShopItem = {
   id: string;
   name: string;
   heroImageUrl: string | null;
+  region: string;
   latitude: number;
   longitude: number;
+  distanceMeters: number;
   avgRating: number;
   reviewCount: number;
   avgPrice: number | null;
@@ -59,7 +61,7 @@ export type SearchShopItem = {
 
 export type SearchShopsResponse = {
   items: SearchShopItem[];
-  hasMore: boolean;
+  hasNext: boolean;
 };
 
 export async function getSearchShops(
@@ -84,7 +86,7 @@ export async function getSearchShops(
   if (
     !data ||
     !Array.isArray(data.items) ||
-    typeof data.hasMore !== "boolean"
+    typeof data.hasNext !== "boolean"
   ) {
     throw new Error("Invalid response from /shops/search");
   }

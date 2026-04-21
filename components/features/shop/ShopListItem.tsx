@@ -15,7 +15,7 @@ type ShopListItemProps = {
   rating: number;
   reviewCount?: number;
   isLiked?: boolean;
-  distanceKm?: number | null;
+  distanceMeters?: number | null;
   onToggleLikeAction?: (next: boolean) => void;
   averagePrice?: number;
   topInfoItems?: InfoRowItem[]; // 태그로 3개까지
@@ -23,13 +23,14 @@ type ShopListItemProps = {
   variant?: InfoRowVariant;
 };
 
-function formatDistance(km: number) {
-  if (!Number.isFinite(km)) return null;
+function formatDistanceMeters(meters: number) {
+  if (!Number.isFinite(meters)) return null;
 
-  if (km < 1) {
-    const m = Math.round(km * 1000);
-    return `${m}m`;
+  if (meters < 1000) {
+    return `${meters}m`;
   }
+
+  const km = meters / 1000;
 
   // 10km 미만은 소수 1자리, 그 이상은 정수로
   const label = km < 10 ? km.toFixed(1) : km.toFixed(0);
@@ -42,14 +43,16 @@ export function ShopListItem({
   rating,
   reviewCount,
   isLiked,
-  distanceKm,
+  distanceMeters,
   onToggleLikeAction,
   averagePrice,
   topInfoItems = [],
   className,
 }: ShopListItemProps) {
   const distanceLabel =
-    typeof distanceKm === "number" ? formatDistance(distanceKm) : null;
+    typeof distanceMeters === "number"
+      ? formatDistanceMeters(distanceMeters)
+      : null;
 
   const priceText =
     averagePrice == null ? null : Math.round(averagePrice).toLocaleString();
@@ -61,7 +64,7 @@ export function ShopListItem({
         className
       )}
     >
-      <div className="relative aspect-[16/9] w-full bg-zinc-100">
+      <div className="relative aspect-video w-full bg-zinc-100">
         {imageUrl ? (
           <Image
             src={imageUrl}
